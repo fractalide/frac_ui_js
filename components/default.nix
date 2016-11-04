@@ -20,4 +20,4 @@ self = rec { # use one line only to insert a component (utils/new_component.py s
   visible = callPackage ./ui/js/visible {};
 }; # use one line only to insert a component (utils/new_component.py sorts this list)
 in
-{ui_js = self;}
+self

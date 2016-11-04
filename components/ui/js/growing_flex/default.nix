@@ -1,5 +1,5 @@
 { stdenv, buildFractalideComponent, genName, upkeepers
-  , ui_js
+  , flex
   , js_create
   , generic_text
   , fbp_action
@@ -11,7 +11,7 @@ buildFractalideComponent rec {
   contracts = [ js_create generic_text fbp_action ];
   depsSha256 = "1lp2v449kmpwxh08mvilpcvmvvnqca8fpc46ldk41h0hdwyb3mvd";
   configurePhase = ''
-      substituteInPlace src/lib.rs --replace "ui_js_flex" "${ui_js.flex}"
+      substituteInPlace src/lib.rs --replace "ui_js_flex" "${flex}"
   '';
   meta = with stdenv.lib; {
     description = "Component: draw a growable flex ";

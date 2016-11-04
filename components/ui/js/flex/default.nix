@@ -1,12 +1,13 @@
 { stdenv, buildFractalideSubnet, upkeepers
-  , ui_js
+  , tag
+  , orderer
   , ...}:
 
   buildFractalideSubnet rec {
    src = ./.;
    subnet = ''
-   input => input div(${ui_js.tag}) output => output
-   places => places orderer(${ui_js.orderer}) output -> input div()
+   input => input div(${tag}) output => output
+   places => places orderer(${orderer}) output -> input div()
    '';
 
    meta = with stdenv.lib; {
