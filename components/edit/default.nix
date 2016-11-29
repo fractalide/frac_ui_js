@@ -2,10 +2,10 @@
 
 subnet {
   src = ./.;
-  subnet = with contracts; with components; ''
+  flowscript = with contracts; with components; ''
    input => input in_dispatch(${ip_dispatcher}) output -> input out_dispatch(${ip_dispatcher}) output => output
 
-   model(${app_model}) output -> input view(${ui_js_edit_view}) output -> input out_dispatch()
+   model(${app_model}) output -> input view(${ui_js_components.edit_view}) output -> input out_dispatch()
 
    '${generic_text}:(text="")' -> acc model()
 
@@ -19,7 +19,7 @@ subnet {
    view() output[get_model] -> input model()
    view() output[content_edited] -> input model()
 
-   model() compute[content_edited] -> input ce(${ui_js_edit_contentedited}) output -> result model()
+   model() compute[content_edited] -> input ce(${ui_js_components.edit_contentedited}) output -> result model()
    model() compute[set_property] -> input ce()
    '';
 }

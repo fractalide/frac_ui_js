@@ -1,7 +1,7 @@
 { buffet }:
 
 let
-callPackage = buffet.pkgs.lib.callPackageWith (buffet // buffet.support // buffet.contracts // buffet.pkgs);
+callPackage = buffet.pkgs.lib.callPackageWith (buffet // buffet.support );
 self = rec { # use one line only to insert a component (utils/new_component.py sorts this list)
   block = callPackage ./block {};
   edit = callPackage ./edit {};
