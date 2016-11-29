@@ -18,7 +18,7 @@ impl Handler for Server {
         let mut new_ip = IP::new();
         new_ip.action = "intern_msg".into();
         {
-            let mut builder = new_ip.init_root::<generic_text::Builder>();
+            let mut builder = new_ip.build_contract::<generic_text::Builder>();
             let msg = try!(msg.as_text());
             builder.set_text(msg);
         }
@@ -73,13 +73,13 @@ component! {
                 "create" => {
                     // Add append to main
                     {
-                        let mut builder = try!(ip.init_root_from_reader::<js_create::Builder, js_create::Reader>());
+                        let mut builder = try!(ip.edit_contract::<js_create::Builder, js_create::Reader>());
                         builder.set_append("main");
                     }
                     try!(ip.before_send());
                     // Save the sender
                     {
-                        let mut reader: js_create::Reader = try!(ip.get_root());
+                        let mut reader: js_create::Reader = try!(ip.read_contract());
                         let name = try!(reader.get_name());
                         let ptr = reader.get_sender();
                         if name.len() > 0 {
@@ -93,7 +93,7 @@ component! {
                 },
                 "forward_create" => {
                     {
-                        let mut reader: js_create::Reader = try!(ip.get_root());
+                        let mut reader: js_create::Reader = try!(ip.read_contract());
                         let name = try!(reader.get_name());
                         let ptr = reader.get_sender();
                         if name.len() > 0 {
@@ -112,7 +112,7 @@ component! {
                     out.send(d3);
                 }
                 "intern_msg" => {
-                    let mut reader: generic_text::Reader = try!(ip.get_root());
+                    let mut reader: generic_text::Reader = try!(ip.read_contract());
                     let text = try!(reader.get_text());
                     let pos = try!(text.find("#").ok_or(result::Error::Misc("bad response from page".into())));
                     let (action, id) = text.split_at(pos);
@@ -124,7 +124,7 @@ component! {
                         let (id, text) = id.split_at(pos);
                         let (_, text) = text.split_at(1);
                         {
-                            let mut builder: generic_text::Builder = ip.init_root();
+                            let mut builder: generic_text::Builder = ip.build_contract();
                             builder.set_text(text);
                         }
                         id
@@ -133,7 +133,7 @@ component! {
                         let (id, text) = id.split_at(pos);
                         let (_, text) = text.split_at(1);
                         {
-                            let mut builder: generic_text::Builder = ip.init_root();
+                            let mut builder: generic_text::Builder = ip.build_contract();
                             builder.set_text(text);
                         }
                         id
@@ -161,7 +161,7 @@ component! {
 }
 
 fn create_d3(mut ip: IP) -> Result<String> {
-    let mut reader: js_create::Reader = try!(ip.get_root());
+    let mut reader: js_create::Reader = try!(ip.read_contract());
     // Manage name and sender
     let mut d3 = "d3.select(\"#".to_string();
     // Two possibilities : append is set, so add to the parent. append is not send, select the name

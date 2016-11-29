@@ -17,14 +17,14 @@ component! {
         let mut ip_input = try!(self.ports.recv("input"));
 
         let text = {
-            let mut reader: generic_text::Reader = try!(ip_input.get_root());
+            let mut reader: generic_text::Reader = try!(ip_input.read_contract());
             try!(reader.get_text())
         };
 
         // ph
         let mut ip = IP::new();
         {
-            let mut builder = ip.init_root::<js_create::Builder>();
+            let mut builder = ip.build_contract::<js_create::Builder>();
             builder.set_type("div");
         }
         ip.action = "create".into();
@@ -33,7 +33,7 @@ component! {
         // text
         let mut ip = IP::new();
         {
-            let mut builder = ip.init_root::<js_create::Builder>();
+            let mut builder = ip.build_contract::<js_create::Builder>();
             builder.set_type("span");
             builder.set_text(&format!("{}", text));
         }
@@ -46,7 +46,7 @@ component! {
         // input
         let mut new_ip = IP::new();
         {
-            let mut builder = new_ip.init_root::<js_create::Builder>();
+            let mut builder = new_ip.build_contract::<js_create::Builder>();
             builder.set_type("input");
             {
                 let mut attr = builder.borrow().init_property(1);

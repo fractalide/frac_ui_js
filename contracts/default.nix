@@ -1,6 +1,6 @@
-{ pkgs, support, allContracts, ... }:
+{ buffet }:
 let
-callPackage = pkgs.lib.callPackageWith (pkgs // allContracts // support);
+callPackage = buffet.pkgs.lib.callPackageWith ( buffet // buffet.support);
 in
 rec {
 }

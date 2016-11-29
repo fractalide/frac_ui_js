@@ -18,7 +18,7 @@ component! {
         let mut ip_input = try!(self.ports.recv("input"));
 
         {
-            let mut builder: generic_text::Builder = ip_input.init_root();
+            let mut builder: generic_text::Builder = ip_input.build_contract();
             builder.set_text("content_edited");
         }
         ip_input.action = "get_val".into();

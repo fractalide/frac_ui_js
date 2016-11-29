@@ -80,12 +80,12 @@ def write_builtins(external_dependencies):
 
 def create_default_nix (component_description, ports, external_dependencies):
     default_nix = """
-{ stdenv, buildFractalideComponent, genName, upkeepers
+{ stdenv, component, genName, upkeepers
 """ + write_contracts(ports, "nix_header")  + """
 """ + write_external_dependencies(external_dependencies) + """
 , ...}:
 
-buildFractalideComponent rec {
+component rec {
   name = genName ./.;
   src = ./.;
   contracts = [""" + write_contracts(ports, "nix_contracts") + """];
@@ -129,7 +129,7 @@ def write_simple_input_extractor(port, contract):
     return """
     let mut """ + ip + """ = self.ports.recv(\"""" + port + """\")?;
     let """ + port + """ = {
-        let """ + reader + """: """ + contract + """::Reader = """ + ip + """.get_root()?;
+        let """ + reader + """: """ + contract + """::Reader = """ + ip + """.read_contract()?;
         """ + reader + """.get_XXX() // read contract: """ + contract + """ to replace XXX
     };"""
 
@@ -145,7 +145,7 @@ def write_inputs_array_extractor(port, contract):
     return """
     let mut """ + ip + """ = self.ports.recv(\"""" + port + """\")?;
     let """ + port + """ = {
-        let """ + reader + """: """ + contract + """::Reader = """ + ip + """.get_root()?;
+        let """ + reader + """: """ + contract + """::Reader = """ + ip + """.read_contract()?;
         """ + reader + """.get_XXX() // read contract: """ + contract + """ to replace XXX
     };"""
 
@@ -160,7 +160,7 @@ def write_simple_outputs_extractor(port, contract):
     return """
     let mut """ + out_ip + """ = IP::new();
     {
-      let mut variable = """ + out_ip + """.init_root::<""" + contract + """::Builder>();
+      let mut variable = """ + out_ip + """.build_contract::<""" + contract + """::Builder>();
       variable.set_XXX(YYY); // read contract: """ + contract + """ to replace XXX
     }"""
 
@@ -175,7 +175,7 @@ def write_outputs_array_extractor(port, contract):
     return """
     let mut """ + out_ip + """ = IP::new();
     {
-      let mut variable = """ + out_ip + """.init_root::<""" + contract + """::Builder>();
+      let mut variable = """ + out_ip + """.build_contract::<""" + contract + """::Builder>();
       variable.set_XXX(YYY); // read contract: """ + contract + """ to replace XXX
     }"""
 

@@ -1,22 +1,8 @@
-{ stdenv, buildFractalideSubnet, upkeepers
-  , ui_js_edit_create
-  , ui_js_edit_keyfilter
-  , ui_js_edit_validate
-  , ui_js_edit_viewer
-  , io_print
-  , ip_action
-  , ip_clone
-  , ip_dispatcher
-  , ui_js_placeholder
-  , ui_js_tag
-  , debug
-  # contracts
-  , generic_text
-  , ...}:
+{ subnet, contracts, components }:
 
-  buildFractalideSubnet rec {
-   src = ./.;
-   subnet = ''
+subnet {
+  src = ./.;
+  subnet = with contracts; with components; ''
    input => input in_dispatch(${ip_dispatcher}) output -> input out_dispatch(${ip_dispatcher}) output => output
 
    ph(${ui_js_placeholder}) output -> input out_dispatch()
@@ -51,11 +37,4 @@
    clone() clone[2] -> input input()
    clone() clone[3] -> input ph()
    '';
-
-   meta = with stdenv.lib; {
-    description = "Subnet: Counter app";
-    homepage = https://github.com/fractalide/fractalide/tree/master/components/development/test;
-    license = with licenses; [ mpl20 ];
-    maintainers = with upkeepers; [ dmichiels sjmackenzie];
-  };
 }

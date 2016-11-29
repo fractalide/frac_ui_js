@@ -16,19 +16,19 @@ component! {
     fn run(&mut self) -> Result<()> {
         let mut ip_input = try!(self.ports.recv("input"));
 
-        let mut reader: generic_text::Reader = try!(ip_input.get_root());
+        let mut reader: generic_text::Reader = try!(ip_input.read_contract());
         {
             let mut ip = IP::new();
             ip.action = "set_text".into();
             {
-                let mut build = ip.init_root::<generic_text::Builder>();
+                let mut build = ip.build_contract::<generic_text::Builder>();
                 build.set_text(try!(reader.get_text()));
             }
             try!(self.ports.send("text", ip));
         }
         let mut ip = IP::new();
         {
-            let mut builder = ip.init_root::<generic_tuple_text::Builder>();
+            let mut builder = ip.build_contract::<generic_tuple_text::Builder>();
             builder.set_key("value");
             builder.set_value(try!(reader.get_text()));
 

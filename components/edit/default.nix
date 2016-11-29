@@ -1,17 +1,8 @@
-{ stdenv, buildFractalideSubnet, upkeepers
-  , ui_js_edit_view
-  , ui_js_edit_contentedited
-  , app_model
-  , ip_clone
-  , ip_dispatcher
-  , debug
-  # contracts
-  , generic_text
-  , ...}:
+{ subnet, contracts, components }:
 
-  buildFractalideSubnet rec {
-   src = ./.;
-   subnet = ''
+subnet {
+  src = ./.;
+  subnet = with contracts; with components; ''
    input => input in_dispatch(${ip_dispatcher}) output -> input out_dispatch(${ip_dispatcher}) output => output
 
    model(${app_model}) output -> input view(${ui_js_edit_view}) output -> input out_dispatch()
@@ -31,11 +22,4 @@
    model() compute[content_edited] -> input ce(${ui_js_edit_contentedited}) output -> result model()
    model() compute[set_property] -> input ce()
    '';
-
-   meta = with stdenv.lib; {
-    description = "Subnet: editor card";
-    homepage = https://github.com/fractalide/fractalide/tree/master/components/development/test;
-    license = with licenses; [ mpl20 ];
-    maintainers = with upkeepers; [ dmichiels sjmackenzie];
-  };
 }

@@ -39,7 +39,7 @@ impl Portal {
 
     fn build(&mut self, ip_input: &mut IP) -> Result<()> {
         self.clear();
-        let reader: js_create::Reader = try!(ip_input.get_root());
+        let reader: js_create::Reader = try!(ip_input.read_contract());
         let ty = try!(reader.get_type());
         self.ty = Some(ty.into());
         let text = try!(reader.get_text());
@@ -96,7 +96,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             try!(comp.portal.build(&mut ip_input));
             // create the create IP
             {
-                let mut builder = try!(ip_input.init_root_from_reader::<js_create::Builder, js_create::Reader>());
+                let mut builder = try!(ip_input.edit_contract::<js_create::Builder, js_create::Reader>());
                 // set the name
                 builder.set_name(&comp.name);
                 // set the sender (raw ip to the input port)
@@ -112,7 +112,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
         // CSS
         "set_css" => {
             // Change in portal
-            let reader = try!(ip_input.get_root::<generic_tuple_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_tuple_text::Reader>());
             let key = try!(reader.get_key());
             let value = try!(reader.get_value());
             comp.portal.style.insert(key.into(), value.into());
@@ -120,7 +120,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             let mut ip = IP::new();
             ip.action = "forward".into();
             {
-                let mut builder = ip.init_root::<js_create::Builder>();
+                let mut builder = ip.build_contract::<js_create::Builder>();
                 builder.set_name(&comp.name);
                 let mut style = builder.init_style(1);
                 style.borrow().get(0).set_key(key);
@@ -129,14 +129,14 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             try!(comp.ports.send_action("output", ip));
         }
         "get_css" => {
-            let reader = try!(ip_input.get_root::<generic_tuple_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_tuple_text::Reader>());
             let key = try!(reader.get_key());
             let value = try!(reader.get_value());
             let resp = comp.portal.style.get(value).map(|resp| resp.as_str())
                 .unwrap_or("");
             let mut ip = IP::new();
             {
-                let mut builder = ip.init_root::<generic_text::Builder>();
+                let mut builder = ip.build_contract::<generic_text::Builder>();
                 builder.set_text(resp);
             }
             ip.action = key.to_string();
@@ -145,7 +145,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
         // Attributes
         "set_attr" => {
             // Change in portal
-            let reader = try!(ip_input.get_root::<generic_tuple_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_tuple_text::Reader>());
             let key = try!(reader.get_key());
             let value = try!(reader.get_value());
             comp.portal.attributes.insert(key.into(), value.into());
@@ -153,7 +153,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             let mut ip = IP::new();
             ip.action = "forward".into();
             {
-                let mut builder = ip.init_root::<js_create::Builder>();
+                let mut builder = ip.build_contract::<js_create::Builder>();
                 builder.set_name(&comp.name);
                 let mut attr = builder.init_attr(1);
                 attr.borrow().get(0).set_key(key);
@@ -162,14 +162,14 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             try!(comp.ports.send_action("output", ip));
         }
         "get_attr" => {
-            let reader = try!(ip_input.get_root::<generic_tuple_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_tuple_text::Reader>());
             let key = try!(reader.get_key());
             let value = try!(reader.get_value());
             let resp = comp.portal.attributes.get(value).map(|resp| resp.as_str())
                 .unwrap_or("");
             let mut ip = IP::new();
             {
-                let mut builder = ip.init_root::<generic_text::Builder>();
+                let mut builder = ip.build_contract::<generic_text::Builder>();
                 builder.set_text(resp);
             }
             ip.action = key.to_string();
@@ -178,7 +178,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
         // class
         "set_class" => {
             // Change in portal
-            let reader = try!(ip_input.get_root::<generic_tuple_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_tuple_text::Reader>());
             let key = try!(reader.get_key());
             let value = try!(reader.get_value());
             let value = if value == "true" { true } else { false };
@@ -187,7 +187,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             let mut ip = IP::new();
             ip.action = "forward".into();
             {
-                let mut builder = ip.init_root::<js_create::Builder>();
+                let mut builder = ip.build_contract::<js_create::Builder>();
                 builder.set_name(&comp.name);
                 let mut class = builder.init_class(1);
                 class.borrow().get(0).set_name(key);
@@ -196,13 +196,13 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             try!(comp.ports.send_action("output", ip));
         }
         "get_class" => {
-            let reader = try!(ip_input.get_root::<generic_tuple_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_tuple_text::Reader>());
             let key = try!(reader.get_key());
             let value = try!(reader.get_value());
             let resp = comp.portal.class.get(value).map(|b| b.to_owned()).unwrap_or(false);
             let mut ip = IP::new();
             {
-                let mut builder = ip.init_root::<generic_bool::Builder>();
+                let mut builder = ip.build_contract::<generic_bool::Builder>();
                 builder.set_bool(resp);
             }
             ip.action = key.to_string();
@@ -211,7 +211,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
         // property
         "set_property" => {
             // Change in portal
-            let reader = try!(ip_input.get_root::<generic_tuple_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_tuple_text::Reader>());
             let key = try!(reader.get_key());
             let value = try!(reader.get_value());
             comp.portal.property.insert(key.into(), value.into());
@@ -219,7 +219,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             let mut ip = IP::new();
             ip.action = "forward".into();
             {
-                let mut builder = ip.init_root::<js_create::Builder>();
+                let mut builder = ip.build_contract::<js_create::Builder>();
                 builder.set_name(&comp.name);
                 let mut prop = builder.init_property(1);
                 prop.borrow().get(0).set_key(key);
@@ -228,14 +228,14 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             try!(comp.ports.send_action("output", ip));
         }
         "get_property" => {
-            let reader = try!(ip_input.get_root::<generic_tuple_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_tuple_text::Reader>());
             let key = try!(reader.get_key());
             let value = try!(reader.get_value());
             let resp = comp.portal.property.get(value).map(|resp| resp.as_str())
                 .unwrap_or("");
             let mut ip = IP::new();
             {
-                let mut builder = ip.init_root::<generic_text::Builder>();
+                let mut builder = ip.build_contract::<generic_text::Builder>();
                 builder.set_text(resp);
             }
             ip.action = key.to_string();
@@ -243,7 +243,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
         }
         // Content
         "set_text" => {
-            let reader = try!(ip_input.get_root::<generic_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_text::Reader>());
             let new_content = try!(reader.get_text());
             // Change in portal
             comp.portal.text = Some(new_content.to_string());
@@ -251,7 +251,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
             let mut ip = IP::new();
             ip.action = "forward".to_string();
             {
-                let mut builder: js_create::Builder = ip.init_root();
+                let mut builder: js_create::Builder = ip.build_contract();
                 builder.set_name(&comp.name);
                 builder.set_text(new_content);
             }
@@ -260,18 +260,18 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
         "insert_text" => {
             ip_input.action = "forward_create".into();
             {
-                let mut builder = try!(ip_input.init_root_from_reader::<js_create::Builder, js_create::Reader>());
+                let mut builder = try!(ip_input.edit_contract::<js_create::Builder, js_create::Reader>());
                 builder.set_append(&comp.name);
             }
             comp.ports.send_action("output", ip_input);
         }
         "get_text" => {
-            let reader = try!(ip_input.get_root::<generic_text::Reader>());
+            let reader = try!(ip_input.read_contract::<generic_text::Reader>());
             let key = try!(reader.get_text());
             let resp = comp.portal.text.as_ref().map(|resp| resp.as_str()).unwrap_or("");
             let mut ip = IP::new();
             {
-                let mut builder = ip.init_root::<generic_text::Builder>();
+                let mut builder = ip.build_contract::<generic_text::Builder>();
                 builder.set_text(resp);
             }
             ip.action = key.to_string();
@@ -279,7 +279,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
         }
         "input" => {
             {
-                let mut reader: generic_text::Reader = try!(ip_input.get_root());
+                let mut reader: generic_text::Reader = try!(ip_input.read_contract());
                 comp.portal.property.insert("value".into(), try!(reader.get_text()).into());
             }
             let _ = comp.ports.send_action("output", ip_input);
@@ -287,7 +287,7 @@ pub fn handle_ip(mut comp: &mut ui_js_tag, mut ip_input: IP) -> Result<()> {
         }
         "delete" => {
             {
-                let mut builder: js_create::Builder = ip_input.init_root();
+                let mut builder: js_create::Builder = ip_input.build_contract();
                 builder.set_name(&comp.name);
                 builder.set_remove(true);
             }

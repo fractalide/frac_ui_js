@@ -36,13 +36,13 @@ component! {
                     ip.action = "insert_text".into();
                     try!(insert(&mut ip));
                     {
-                        let reader = try!(ip.get_root::<js_create::Reader>());
+                        let reader = try!(ip.read_contract::<js_create::Reader>());
                         self.portal.places.insert(place.into(), try!(reader.get_name()).into());
                     }
                 } else if ip.action == "display" {
                     // Display
                     ip.action = "forward".into();
-                    let mut builder = ip.init_root::<js_create::Builder>();
+                    let mut builder = ip.build_contract::<js_create::Builder>();
                     let name = try!(self.portal.places.get(&place).ok_or(result::Error::Misc("Don't get the name".into())));
                     builder.set_name(&name);
                     let mut init = builder.init_style(1);
@@ -54,7 +54,7 @@ component! {
                             let mut ip = IP::new();
                             ip.action = "forward".into();
                             {
-                                let mut builder = ip.init_root::<js_create::Builder>();
+                                let mut builder = ip.build_contract::<js_create::Builder>();
                                 let name = try!(self.portal.places.get(actual).ok_or(result::Error::Misc("Don't get the name".into())));
                                 builder.set_name(&name);
                                 let mut init = builder.init_style(1);
@@ -79,7 +79,7 @@ component! {
 fn insert(mut ip: &mut IP) -> Result<()> {
     let mut vec: Vec<(String, String)> = vec![];
     {
-        let acc: js_create::Reader = try!(ip.get_root());
+        let acc: js_create::Reader = try!(ip.read_contract());
         let acc_places = try!(acc.get_style());
         for i in 0..acc_places.len() {
             let p = acc_places.get(i);
@@ -88,7 +88,7 @@ fn insert(mut ip: &mut IP) -> Result<()> {
     }
     // Add it
     {
-        let mut builder = try!(ip.init_root_from_reader::<js_create::Builder, js_create::Reader>());
+        let mut builder = try!(ip.edit_contract::<js_create::Builder, js_create::Reader>());
         let mut init = builder.init_style((vec.len() + 1) as u32);
         let mut i = 0;
         for p in vec {

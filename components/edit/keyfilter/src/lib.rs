@@ -19,13 +19,13 @@ component! {
 
         let mut res = "".to_string();
         {
-            let mut reader: generic_text::Reader = try!(ip_input.get_root());
+            let mut reader: generic_text::Reader = try!(ip_input.read_contract());
             res.push_str(try!(reader.get_text()));
         }
         if res == "27" { // Escape
             ip_input.action = "get_model".into();
             {
-                let mut builder: generic_text::Builder = ip_input.init_root();
+                let mut builder: generic_text::Builder = ip_input.build_contract();
                 builder.set_text("escape");
             }
             try!(self.ports.send("escape", ip_input));
@@ -35,7 +35,7 @@ component! {
         } else if res == "13" { // Enter
             ip_input.action="get_property".into();
             {
-                let mut builder: generic_tuple_text::Builder = ip_input.init_root();
+                let mut builder: generic_tuple_text::Builder = ip_input.build_contract();
                 builder.set_key("content_edited");
                 builder.set_value("value");
             }

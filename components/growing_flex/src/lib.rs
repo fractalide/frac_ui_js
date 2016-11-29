@@ -21,7 +21,7 @@ component! {
                 // Send the create comp IP
                 let mut send_ip = IP::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.init_root();
+                    let mut builder: fbp_action::Builder = send_ip.build_contract();
                     let mut add = builder.init_add();
                     add.set_name("flex");
                     add.set_comp("ui_js_flex");
@@ -30,7 +30,7 @@ component! {
                 // Connect to outside
                 let mut connect_ip = IP::new();
                 {
-                    let mut builder: fbp_action::Builder = connect_ip.init_root();
+                    let mut builder: fbp_action::Builder = connect_ip.build_contract();
                     let mut connect = builder.init_connect_sender();
                     connect.set_name("flex");
                     connect.set_port("output");
@@ -41,7 +41,7 @@ component! {
                 // Send the acc IP
                 let mut send_ip = IP::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.init_root();
+                    let mut builder: fbp_action::Builder = send_ip.build_contract();
                     let mut connect = builder.init_send();
                     connect.set_comp("flex");
                     connect.set_port("input");
@@ -57,7 +57,7 @@ component! {
                     // Send the delete IP
                     let mut send_ip = IP::new();
                     {
-                        let mut builder: fbp_action::Builder = send_ip.init_root();
+                        let mut builder: fbp_action::Builder = send_ip.build_contract();
                         let mut connect = builder.init_send();
                         connect.set_comp(&name);
                         connect.set_port("input");
@@ -73,7 +73,7 @@ component! {
                     // Send the remove IP
                     let mut remove_ip = IP::new();
                     {
-                        let mut builder: fbp_action::Builder = remove_ip.init_root();
+                        let mut builder: fbp_action::Builder = remove_ip.build_contract();
                         let mut rem = builder.set_remove(&name);
                     }
                     try!(self.ports.send("scheduler", remove_ip));
@@ -85,12 +85,12 @@ component! {
                 self.portal += 1;
                 // Add link
                 let mut ip_opt = self.recv_option();
-                let mut reader: generic_text::Reader = try!(ip_opt.get_root());
+                let mut reader: generic_text::Reader = try!(ip_opt.read_contract());
                 let name = format!("i{}", self.portal);
                 // Send the create comp IP
                 let mut send_ip = IP::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.init_root();
+                    let mut builder: fbp_action::Builder = send_ip.build_contract();
                     let mut add = builder.init_add();
                     add.set_name(&name);
                     add.set_comp(try!(reader.get_text()));
@@ -100,7 +100,7 @@ component! {
                 // Send the connect IP
                 let mut send_ip = IP::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.init_root();
+                    let mut builder: fbp_action::Builder = send_ip.build_contract();
                     let mut connect = builder.init_connect();
                     connect.set_o_name(&name);
                     connect.set_o_port("output");
@@ -113,7 +113,7 @@ component! {
                 // Send the create IP
                 let mut send_ip = IP::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.init_root();
+                    let mut builder: fbp_action::Builder = send_ip.build_contract();
                     let mut send = builder.init_send();
                     send.set_comp(&name);
                     send.set_port("input");

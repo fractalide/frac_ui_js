@@ -23,7 +23,7 @@ component! {
                     // Add the css
                     let mut vec: Vec<(String, String)> = vec![];
                     {
-                        let acc: js_create::Reader = try!(ip.get_root());
+                        let acc: js_create::Reader = try!(ip.read_contract());
                         let acc_places = try!(acc.get_style());
                         for i in 0..acc_places.len() {
                             let p = acc_places.get(i);
@@ -32,7 +32,7 @@ component! {
                     }
                     // Add it
                     {
-                        let mut builder = try!(ip.init_root_from_reader::<js_create::Builder, js_create::Reader>());
+                        let mut builder = try!(ip.edit_contract::<js_create::Builder, js_create::Reader>());
                         let mut init = builder.init_style((vec.len() + 1) as u32);
                         let mut i = 0;
                         for p in vec {
