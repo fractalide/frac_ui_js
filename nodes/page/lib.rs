@@ -10,25 +10,25 @@ use std::sync::mpsc::channel;
 
 struct Server {
     out: ws::Sender,
-    input: IPSender,
+    input: MsgSender,
 }
 
 impl Handler for Server {
     fn on_message(&mut self, msg: Message) -> ws::Result<()> {
-        let mut new_ip = IP::new();
-        new_ip.action = "intern_msg".into();
+        let mut new_msg = Msg::new();
+        new_msg.action = "intern_msg".into();
         {
-            let mut builder = new_ip.build_schema::<generic_text::Builder>();
+            let mut builder = new_msg.build_schema::<generic_text::Builder>();
             let msg = try!(msg.as_text());
             builder.set_text(msg);
         }
-        &self.input.send(new_ip).expect("cannot send intern");
+        &self.input.send(new_msg).expect("cannot send intern");
         Ok(())
     }
 
     fn on_close(&mut self, code: CloseCode, reason: &str) {
         // The WebSocket protocol allows for a utf8 reason for the closing state after the
-        // close code. WS-RS will attempt to interpret this data as a utf8 description of the
+        // close code. WS-RS will attempt to interpret this data as a utf8 descrmsgtion of the
         // reason for closing the connection. I many cases, `reason` will be an empty string.
         // So, you may not normally want to display `reason` to the user,
         // but let's assume that we know that `reason` is human-readable.
@@ -41,90 +41,86 @@ impl Handler for Server {
 }
 
 agent! {
-    ui_js_page, edges(generic_text, js_create)
-    inputs(input: any),
-    inputs_array(),
-    outputs(output: any),
-    outputs_array(output: any),
-    option(),
-    acc(),
-    fn run(&mut self) -> Result<()> {
+    input(input: any),
+    output(output: any),
+    outarr(output: any),
+    fn run(&mut self) -> Result<Signal> {
 
         let (s, r) = channel();
-        let in_sender = self.ports.get_sender("input").expect("cannot find input");
+        let in_sender = self.input.input.get_sender();
 
         let handle = thread::spawn(move || {
             listen("127.0.0.1:3012", move |out| {
                 s.send(out.clone()).expect("cannot send");
                 Server {
                     out: out,
-                    input: in_sender.clone(),
+                    input: in_sender,
                 }
             });
         });
 
         let mut out = try!(r.recv());
-        let mut senders: HashMap<String, Box<IPSender>> = HashMap::new();
+        let mut senders: HashMap<String, Box<MsgSender>> = HashMap::new();
 
         loop {
-            let mut ip = try!(self.ports.recv("input"));
-            let act = ip.action.clone();
+            let mut msg = try!(self.input.input.recv());
+            let act = msg.action.clone();
             match &act[..] {
                 "create" => {
                     // Add append to main
                     {
-                        let mut builder = try!(ip.edit_schema::<js_create::Builder, js_create::Reader>());
+                        let mut builder = try!(msg.edit_schema::<js_create::Builder, js_create::Reader>());
                         builder.set_append("main");
                     }
-                    try!(ip.before_send());
+                    try!(msg.before_send());
                     // Save the sender
                     {
-                        let mut reader: js_create::Reader = try!(ip.read_schema());
+                        let mut reader: js_create::Reader = try!(msg.read_schema());
                         let name = try!(reader.get_name());
                         let ptr = reader.get_sender();
                         if name.len() > 0 {
-                            let sender: Box<IPSender> = unsafe { Box::from_raw(ptr as *mut IPSender) };
+                            let sender: Box<MsgSender> = unsafe { Box::from_raw(ptr as *mut MsgSender) };
                             senders.insert(name.into(), sender);
                         }
                     }
                     // Create d3
-                    let d3 = try!(create_d3(ip));
+                    let d3 = try!(create_d3(msg));
                     out.send(d3);
                 },
                 "forward_create" => {
                     {
-                        let mut reader: js_create::Reader = try!(ip.read_schema());
+                        let mut reader: js_create::Reader = try!(msg.read_schema());
                         let name = try!(reader.get_name());
                         let ptr = reader.get_sender();
                         if name.len() > 0 {
-                            let sender: Box<IPSender> = unsafe { Box::from_raw(ptr as *mut IPSender) };
+                            let sender: Box<MsgSender> = unsafe { Box::from_raw(ptr as *mut MsgSender) };
                             senders.insert(name.into(), sender);
                         }
                     }
-                    let d3 = try!(create_d3(ip));
+                    let d3 = try!(create_d3(msg));
                     out.send(d3);
                 },
                 // "delete" => {
                 //     out.send("html;main;");
                 // }
                 "forward" => {
-                    let d3 = try!(create_d3(ip));
+                    let d3 = try!(create_d3(msg));
                     out.send(d3);
                 }
                 "intern_msg" => {
-                    let mut reader: generic_text::Reader = try!(ip.read_schema());
+                    let mut reader: generic_text::Reader = try!(msg.read_schema());
                     let text = try!(reader.get_text());
                     let pos = try!(text.find("#").ok_or(result::Error::Misc("bad response from page".into())));
                     let (action, id) = text.split_at(pos);
                     let (_, id) = id.split_at(1);
-                    let mut ip = IP::new();
-                    ip.action = action.into();
+                    let mut msg = Msg::new();
+                    msg.action = action.into();
                     let id = if action == "input" {
                         let pos = try!(id.find("#").ok_or(result::Error::Misc("bad response from page".into())));
                         let (id, text) = id.split_at(pos);
                         let (_, text) = text.split_at(1);
                         {
-                            let mut builder: generic_text::Builder = ip.build_schema();
+                            let mut builder: generic_text::Builder = msg.build_schema();
                             builder.set_text(text);
                         }
                         id
@@ -133,7 +129,7 @@ agent! {
                         let (id, text) = id.split_at(pos);
                         let (_, text) = text.split_at(1);
                         {
-                            let mut builder: generic_text::Builder = ip.build_schema();
+                            let mut builder: generic_text::Builder = msg.build_schema();
                             builder.set_text(text);
                         }
                         id
@@ -142,12 +138,12 @@ agent! {
                     };
                     if senders.contains_key(id) {
                         let s = senders.get(id).expect("unreachable");
-                        try!(s.send(ip));
+                        try!(s.send(msg));
                     }
                 },
                 _ => {
-                    println!("Receive a random ip : {}", act);
-                    self.ports.send_action("output", ip);
+                    println!("Receive a random msg : {}", act);
+                    self.send_action("output", msg);
                 }
 
 
@@ -156,12 +152,12 @@ agent! {
 
         handle.join().expect("cannot join");
 
-        Ok(())
+        Ok(End)
     }
 }
 
-fn create_d3(mut ip: IP) -> Result<String> {
-    let mut reader: js_create::Reader = try!(ip.read_schema());
+fn create_d3(mut msg: Msg) -> Result<String> {
+    let mut reader: js_create::Reader = try!(msg.read_schema());
     // Manage name and sender
     let mut d3 = "d3.select(\"#".to_string();
     // Two possibilities : append is set, so add to the parent. append is not send, select the name

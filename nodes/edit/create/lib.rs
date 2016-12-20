@@ -6,47 +6,42 @@ extern crate rustfbp;
 use std::thread;
 
 agent! {
-    ui_js_edit_create, edges(generic_text, js_create)
-    inputs(input: generic_text),
-    inputs_array(),
-    outputs(ph: js_create, text: js_create, input: js_create),
-    outputs_array(),
-    option(),
-    acc(),
-    fn run(&mut self) -> Result<()> {
-        let mut ip_input = try!(self.ports.recv("input"));
+    input(input: generic_text),
+    output(ph: js_create, text: js_create, input: js_create),
+    fn run(&mut self) -> Result<Signal> {
+        let mut msg_input = try!(self.input.input.recv());
 
         let text = {
-            let mut reader: generic_text::Reader = try!(ip_input.read_schema());
+            let mut reader: generic_text::Reader = try!(msg_input.read_schema());
             try!(reader.get_text())
         };
 
         // ph
-        let mut ip = IP::new();
+        let mut msg = Msg::new();
         {
-            let mut builder = ip.build_schema::<js_create::Builder>();
+            let mut builder = msg.build_schema::<js_create::Builder>();
             builder.set_type("div");
         }
-        ip.action = "create".into();
-        try!(self.ports.send("ph", ip));
+        msg.action = "create".into();
+        try!(self.output.ph.send(msg));
 
         // text
-        let mut ip = IP::new();
+        let mut msg = Msg::new();
         {
-            let mut builder = ip.build_schema::<js_create::Builder>();
+            let mut builder = msg.build_schema::<js_create::Builder>();
             builder.set_type("span");
             builder.set_text(&format!("{}", text));
         }
-        ip.action = "create".into();
-        try!(self.ports.send("text", ip));
-        let mut ip = IP::new();
-        ip.action = "display".into();
-        try!(self.ports.send("text", ip));
+        msg.action = "create".into();
+        try!(self.output.text.send(msg));
+        let mut msg = Msg::new();
+        msg.action = "display".into();
+        try!(self.output.text.send(msg));
 
         // input
-        let mut new_ip = IP::new();
+        let mut new_msg = Msg::new();
         {
-            let mut builder = new_ip.build_schema::<js_create::Builder>();
+            let mut builder = new_msg.build_schema::<js_create::Builder>();
             builder.set_type("input");
             {
                 let mut attr = builder.borrow().init_property(1);
@@ -54,10 +49,10 @@ agent! {
                 attr.borrow().get(0).set_val(text);
             }
         }
-        new_ip.action = "create".into();
-        try!(self.ports.send("input", new_ip));
+        new_msg.action = "create".into();
+        try!(self.output.input.send(new_msg));
 
 
-        Ok(())
+        Ok(End)
     }
 }

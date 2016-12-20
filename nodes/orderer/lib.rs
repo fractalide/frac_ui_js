@@ -6,17 +6,11 @@ extern crate rustfbp;
 use std::thread;
 
 agent! {
-    ui_js_orderer, edges(js_create)
-    inputs(),
-    inputs_array(places: any),
-    outputs(output: any),
-    outputs_array(),
-    option(),
-    acc(),
-    fn run(&mut self) -> Result<()> {
-        let places = try!(self.ports.get_input_selections("places"));
-        for place in places {
-            let mut ip_place = self.ports.try_recv_array("places", &place);
+    inarr(places: any),
+    output(output: any),
+    fn run(&mut self) -> Result<Signal> {
+        for (place, recv) in self.inarr.places.iter() {
+            let mut ip_place = recv.try_recv();
             if let Ok(mut ip) = ip_place {
                 if ip.action == "create" {
                     ip.action = "insert_text".into();
@@ -41,13 +35,13 @@ agent! {
                             i += 1;
                         }
                         init.borrow().get(i).set_key("order");
-                        init.borrow().get(i).set_val(&place);
+                        init.borrow().get(i).set_val(place);
                     }
                 }
-                try!(self.ports.send("output", ip));
+                try!(self.output.output.send(ip));
             }
         }
 
-        Ok(())
+        Ok(End)
     }
 }

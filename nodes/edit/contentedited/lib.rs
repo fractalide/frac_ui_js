@@ -6,23 +6,18 @@ extern crate rustfbp;
 use std::thread;
 
 agent! {
-    ui_js_edit_contentedited, edges(generic_text)
-    inputs(input: generic_text),
-    inputs_array(),
-    outputs(output: generic_text),
-    outputs_array(),
-    option(),
-    acc(),
-    fn run(&mut self) -> Result<()> {
-        let mut ip_new = try!(self.ports.recv("input"));
-        let _ = try!(self.ports.recv("input"));
+    input(input: generic_text),
+    output(output: generic_text),
+    fn run(&mut self) -> Result<Signal> {
+        let mut msg_new = try!(self.input.input.recv());
+        let _ = try!(self.input.input.recv());
 
-        if &ip_new.action != "content_edited" {
+        if &msg_new.action != "content_edited" {
             return Err(result::Error::Misc("Bad action".into()));
         }
 
-        try!(self.ports.send("output", ip_new));
+        try!(self.output.output.send(msg_new));
 
-        Ok(())
+        Ok(End)
     }
 }

@@ -6,36 +6,31 @@ extern crate rustfbp;
 use std::thread;
 
 agent! {
-    ui_js_edit_viewer, edges(generic_text, generic_tuple_text)
-    inputs(input: generic_text),
-    inputs_array(),
-    outputs(text: generic_text, input: generic_tuple_text),
-    outputs_array(),
-    option(),
-    acc(),
-    fn run(&mut self) -> Result<()> {
-        let mut ip_input = try!(self.ports.recv("input"));
+    input(input: generic_text),
+    output(text: generic_text, input: generic_tuple_text),
+    fn run(&mut self) -> Result<Signal> {
+        let mut msg_input = try!(self.input.input.recv());
 
-        let mut reader: generic_text::Reader = try!(ip_input.read_schema());
+        let mut reader: generic_text::Reader = try!(msg_input.read_schema());
         {
-            let mut ip = IP::new();
-            ip.action = "set_text".into();
+            let mut msg = Msg::new();
+            msg.action = "set_text".into();
             {
-                let mut build = ip.build_schema::<generic_text::Builder>();
+                let mut build = msg.build_schema::<generic_text::Builder>();
                 build.set_text(try!(reader.get_text()));
             }
-            try!(self.ports.send("text", ip));
+            try!(self.output.text.send(msg));
         }
-        let mut ip = IP::new();
+        let mut msg = Msg::new();
         {
-            let mut builder = ip.build_schema::<generic_tuple_text::Builder>();
+            let mut builder = msg.build_schema::<generic_tuple_text::Builder>();
             builder.set_key("value");
             builder.set_value(try!(reader.get_text()));
 
         }
-        ip.action = "set_property".into();
-        try!(self.ports.send("input", ip));
+        msg.action = "set_property".into();
+        try!(self.output.input.send(msg));
 
-        Ok(())
+        Ok(End)
     }
 }

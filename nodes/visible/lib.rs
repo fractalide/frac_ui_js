@@ -20,29 +20,24 @@ impl Portal {
 }
 
 agent! {
-    ui_js_visible, edges(js_create)
-    inputs(),
-    inputs_array(places: any),
-    outputs(output: any),
-    outputs_array(),
-    option(),
-    acc(), portal(Portal => Portal::new())
-    fn run(&mut self) -> Result<()> {
-        let places = try!(self.ports.get_input_selections("places"));
-        for place in places {
-            let mut ip_place = self.ports.try_recv_array("places", &place);
-            if let Ok(mut ip) = ip_place {
-                if ip.action == "create" {
-                    ip.action = "insert_text".into();
-                    try!(insert(&mut ip));
+    inarr(places: any),
+    output(output: any),
+    portal(Portal => Portal::new()),
+    fn run(&mut self) -> Result<Signal> {
+        for (place, recv) in self.inarr.places.iter() {
+            let mut msg_place = recv.try_recv();
+            if let Ok(mut msg) = msg_place {
+                if msg.action == "create" {
+                    msg.action = "insert_text".into();
+                    try!(insert(&mut msg));
                     {
-                        let reader = try!(ip.read_schema::<js_create::Reader>());
+                        let reader = try!(msg.read_schema::<js_create::Reader>());
                         self.portal.places.insert(place.into(), try!(reader.get_name()).into());
                     }
-                } else if ip.action == "display" {
+                } else if msg.action == "display" {
                     // Display
-                    ip.action = "forward".into();
-                    let mut builder = ip.build_schema::<js_create::Builder>();
+                    msg.action = "forward".into();
+                    let mut builder = msg.build_schema::<js_create::Builder>();
                     let name = try!(self.portal.places.get(&place).ok_or(result::Error::Misc("Don't get the name".into())));
                     builder.set_name(&name);
                     let mut init = builder.init_style(1);
@@ -51,35 +46,35 @@ agent! {
                     // Hidden if already a visible
                     match self.portal.actual {
                         Some(ref actual) => {
-                            let mut ip = IP::new();
-                            ip.action = "forward".into();
+                            let mut msg = Msg::new();
+                            msg.action = "forward".into();
                             {
-                                let mut builder = ip.build_schema::<js_create::Builder>();
+                                let mut builder = msg.build_schema::<js_create::Builder>();
                                 let name = try!(self.portal.places.get(actual).ok_or(result::Error::Misc("Don't get the name".into())));
                                 builder.set_name(&name);
                                 let mut init = builder.init_style(1);
                                 init.borrow().get(0).set_key("display");
                                 init.borrow().get(0).set_val("none");
                             }
-                            try!(self.ports.send("output", ip));
+                            try!(self.output.output.send(msg));
                         }
                         _ => {}
                     }
                     // Set the new
                     self.portal.actual = Some(place.into());
                 }
-                try!(self.ports.send("output", ip));
+                try!(self.output.output.send(msg));
             }
         }
 
-        Ok(())
+        Ok(End)
     }
 }
 
-fn insert(mut ip: &mut IP) -> Result<()> {
+fn insert(mut msg: &mut Msg) -> Result<()> {
     let mut vec: Vec<(String, String)> = vec![];
     {
-        let acc: js_create::Reader = try!(ip.read_schema());
+        let acc: js_create::Reader = try!(msg.read_schema());
         let acc_places = try!(acc.get_style());
         for i in 0..acc_places.len() {
             let p = acc_places.get(i);
@@ -88,7 +83,7 @@ fn insert(mut ip: &mut IP) -> Result<()> {
     }
     // Add it
     {
-        let mut builder = try!(ip.edit_schema::<js_create::Builder, js_create::Reader>());
+        let mut builder = try!(msg.edit_schema::<js_create::Builder, js_create::Reader>());
         let mut init = builder.init_style((vec.len() + 1) as u32);
         let mut i = 0;
         for p in vec {

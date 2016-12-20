@@ -4,21 +4,16 @@ extern crate capnp;
 extern crate rustfbp;
 
 agent! {
-    ui_js_inserter,
-    inputs(input: any),
-    inputs_array(),
-    outputs(output: any),
-    outputs_array(),
-    option(),
-    acc(),
-    fn run(&mut self) -> Result<()> {
-      let mut ip = try!(self.ports.recv("input"));
-        if ip.action == "create" {
-          // ip.action is "insert_content" or "forward"
-          ip.action = "insert_text".into();
+    input(input: any),
+    output(output: any),
+    fn run(&mut self) -> Result<Signal> {
+      let mut msg = try!(self.input.input.recv());
+        if msg.action == "create" {
+          // msg.action is "insert_content" or "forward"
+          msg.action = "insert_text".into();
         }
-        try!(self.ports.send("output", ip));
+        try!(self.output.output.send(msg));
 
-        Ok(())
+        Ok(End)
     }
 }

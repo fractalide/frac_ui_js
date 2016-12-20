@@ -6,77 +6,75 @@ extern crate rustfbp;
 use std::thread;
 
 agent! {
-    ui_js_growing_flex, edges(js_create, generic_text, fbp_action)
-    inputs(input: any),
-    inputs_array(),
-    outputs(output: any, scheduler: fbp_action),
-    outputs_array(output: any),
+    input(input: any),
+    output(output: any, scheduler: fbp_action),
+    outarr(output: any),
     option(generic_text),
-    acc(), portal(usize => 0)
-    fn run(&mut self) -> Result<()> {
+    portal(usize => 0),
+    fn run(&mut self) -> Result<Signal> {
 
-        let mut ip = try!(self.ports.recv("input"));
-        match &ip.action[..] {
+        let mut msg = try!(self.input.input.recv());
+        match &msg.action[..] {
             "create" => {
-                // Send the create comp IP
-                let mut send_ip = IP::new();
+                // Send the create comp Msg
+                let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.build_schema();
+                    let mut builder: fbp_action::Builder = send_msg.build_schema();
                     let mut add = builder.init_add();
                     add.set_name("flex");
                     add.set_comp("ui_js_flex");
                 }
-                try!(self.ports.send("scheduler", send_ip));
+                try!(self.output.scheduler.send(send_msg));
                 // Connect to outside
-                let mut connect_ip = IP::new();
+                let mut connect_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = connect_ip.build_schema();
+                    let mut builder: fbp_action::Builder = connect_msg.build_schema();
                     let mut connect = builder.init_connect_sender();
                     connect.set_name("flex");
                     connect.set_port("output");
                     connect.set_output("flex");
                 }
-                try!(self.ports.send("scheduler", connect_ip));
+                try!(self.output.scheduler.send(connect_msg));
 
-                // Send the acc IP
-                let mut send_ip = IP::new();
+                // Send the acc Msg
+                let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.build_schema();
+                    let mut builder: fbp_action::Builder = send_msg.build_schema();
                     let mut connect = builder.init_send();
                     connect.set_comp("flex");
                     connect.set_port("input");
                 }
-                try!(self.ports.send("scheduler", send_ip));
-                try!(self.ports.send("scheduler", ip));
+                try!(self.output.scheduler.send(send_msg));
+                try!(self.output.scheduler.send(msg));
 
             }
             "remove" => {
                 if self.portal > 0 {
                     let name = format!("i{}", self.portal);
 
-                    // Send the delete IP
-                    let mut send_ip = IP::new();
+                    // Send the delete Msg
+                    let mut send_msg = Msg::new();
                     {
-                        let mut builder: fbp_action::Builder = send_ip.build_schema();
+                        let mut builder: fbp_action::Builder = send_msg.build_schema();
                         let mut connect = builder.init_send();
                         connect.set_comp(&name);
                         connect.set_port("input");
                     }
-                    try!(self.ports.send("scheduler", send_ip));
-                    let mut comp_ip = IP::new();
-                    comp_ip.action = "delete".into();
-                    try!(self.ports.send("scheduler", comp_ip));
+                    try!(self.output.scheduler.send(send_msg));
+                    let mut comp_msg = Msg::new();
+                    comp_msg.action = "delete".into();
+                    try!(self.output.scheduler.send(comp_msg));
 
 
                     // TODO : remove the sleep once scheduler.remove_comp is async
                     thread::sleep_ms(50);
-                    // Send the remove IP
-                    let mut remove_ip = IP::new();
+                    // Send the remove Msg
+                    let mut remove_msg = Msg::new();
                     {
-                        let mut builder: fbp_action::Builder = remove_ip.build_schema();
+                        let mut builder: fbp_action::Builder = remove_msg.build_schema();
                         let mut rem = builder.set_remove(&name);
                     }
-                    try!(self.ports.send("scheduler", remove_ip));
+                    try!(self.output.scheduler.send(remove_msg));
 
                     self.portal -= 1;
                 }
@@ -84,23 +82,23 @@ agent! {
             "add" => {
                 self.portal += 1;
                 // Add link
-                let mut ip_opt = self.recv_option();
-                let mut reader: generic_text::Reader = try!(ip_opt.read_schema());
+                let mut msg_opt = self.recv_option();
+                let mut reader: generic_text::Reader = try!(msg_opt.read_schema());
                 let name = format!("i{}", self.portal);
-                // Send the create comp IP
-                let mut send_ip = IP::new();
+                // Send the create comp Msg
+                let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.build_schema();
+                    let mut builder: fbp_action::Builder = send_msg.build_schema();
                     let mut add = builder.init_add();
                     add.set_name(&name);
                     add.set_comp(try!(reader.get_text()));
                 }
-                try!(self.ports.send("scheduler", send_ip));
+                try!(self.output.scheduler.send(send_msg));
 
-                // Send the connect IP
-                let mut send_ip = IP::new();
+                // Send the connect Msg
+                let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.build_schema();
+                    let mut builder: fbp_action::Builder = send_msg.build_schema();
                     let mut connect = builder.init_connect();
                     connect.set_o_name(&name);
                     connect.set_o_port("output");
@@ -108,22 +106,22 @@ agent! {
                     connect.set_i_port("places");
                     connect.set_i_selection(&name)
                 }
-                try!(self.ports.send("scheduler", send_ip));
+                try!(self.output.scheduler.send(send_msg));
 
-                // Send the create IP
-                let mut send_ip = IP::new();
+                // Send the create Msg
+                let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_ip.build_schema();
+                    let mut builder: fbp_action::Builder = send_msg.build_schema();
                     let mut send = builder.init_send();
                     send.set_comp(&name);
                     send.set_port("input");
                 }
-                try!(self.ports.send("scheduler", send_ip));
-                ip.action = "create".into();
-                try!(self.ports.send("scheduler", ip));
+                try!(self.output.scheduler.send(send_msg));
+                msg.action = "create".into();
+                try!(self.output.scheduler.send(msg));
             }
-            _ => { try!(self.ports.send_action("output", ip)); }
+            _ => { try!(self.send_action("output", msg)); }
         };
-        Ok(())
+        Ok(End)
     }
 }

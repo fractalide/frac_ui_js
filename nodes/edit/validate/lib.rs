@@ -7,26 +7,21 @@ use std::thread;
 
 // TODO : add ctrl-maj-meta information
 agent! {
-    ui_js_edit_validate, edges(generic_text)
-    inputs(input: generic_text),
-    inputs_array(),
-    outputs(validate: generic_text, display: any),
-    outputs_array(),
-    option(),
-    acc(),
-    fn run(&mut self) -> Result<()> {
-        let mut ip_input = try!(self.ports.recv("input"));
+    input(input: generic_text),
+    output(validate: generic_text, display: any),
+    fn run(&mut self) -> Result<Signal> {
+        let mut msg_input = try!(self.input.input.recv());
 
         {
-            let mut builder: generic_text::Builder = ip_input.build_schema();
+            let mut builder: generic_text::Builder = msg_input.build_schema();
             builder.set_text("content_edited");
         }
-        ip_input.action = "get_val".into();
-        try!(self.ports.send("validate", ip_input));
+        msg_input.action = "get_val".into();
+        try!(self.output.validate.send(msg_input));
 
-        let mut new_ip = IP::new();
-        new_ip.action = "display".into();
-        try!(self.ports.send("display", new_ip));
+        let mut new_msg = Msg::new();
+        new_msg.action = "display".into();
+        try!(self.output.display.send(new_msg));
 
         Ok(())
     }
