@@ -143,7 +143,7 @@ agent! {
                 },
                 _ => {
                     println!("Receive a random msg : {}", act);
-                    self.send_action("output", msg);
+                    send_action!(self, output, msg);
                 }
 
 

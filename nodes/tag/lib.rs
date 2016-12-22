@@ -100,7 +100,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 let sender = Box::new(comp.input.input.get_sender());
                 builder.set_sender(Box::into_raw(sender) as u64);
             }
-            let _ = comp.send_action("output", msg_input);
+            let _ = send_action!(comp, output, msg_input);
             let buffer = comp.portal.buffer.drain(..).collect::<Vec<_>>();
             for msg in buffer {
                 try!(handle_msg(&mut comp, msg));
@@ -123,7 +123,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 style.borrow().get(0).set_key(key);
                 style.borrow().get(0).set_val(value);
             }
-            try!(comp.send_action("output", msg));
+            try!(send_action!(comp, output, msg));
         }
         "get_css" => {
             let reader = try!(msg_input.read_schema::<generic_tuple_text::Reader>());
@@ -137,7 +137,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 builder.set_text(resp);
             }
             msg.action = key.to_string();
-            let _ = comp.send_action("output", msg);
+            let _ = send_action!(comp, output, msg);
         }
         // Attributes
         "set_attr" => {
@@ -156,7 +156,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 attr.borrow().get(0).set_key(key);
                 attr.borrow().get(0).set_val(value);
             }
-            try!(comp.send_action("output", msg));
+            try!(send_action!(comp, output, msg));
         }
         "get_attr" => {
             let reader = try!(msg_input.read_schema::<generic_tuple_text::Reader>());
@@ -170,7 +170,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 builder.set_text(resp);
             }
             msg.action = key.to_string();
-            let _ = comp.send_action("output", msg);
+            let _ = send_action!(comp, output, msg);
         }
         // class
         "set_class" => {
@@ -190,7 +190,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 class.borrow().get(0).set_name(key);
                 class.borrow().get(0).set_set(value);
             }
-            try!(comp.send_action("output", msg));
+            try!(send_action!(comp, output, msg));
         }
         "get_class" => {
             let reader = try!(msg_input.read_schema::<generic_tuple_text::Reader>());
@@ -203,7 +203,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 builder.set_bool(resp);
             }
             msg.action = key.to_string();
-            let _ = comp.send_action("output", msg);
+            let _ = send_action!(comp, output, msg);
         }
         // property
         "set_property" => {
@@ -222,7 +222,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 prop.borrow().get(0).set_key(key);
                 prop.borrow().get(0).set_val(value);
             }
-            try!(comp.send_action("output", msg));
+            try!(send_action!(comp, output, msg));
         }
         "get_property" => {
             let reader = try!(msg_input.read_schema::<generic_tuple_text::Reader>());
@@ -236,7 +236,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 builder.set_text(resp);
             }
             msg.action = key.to_string();
-            let _ = comp.send_action("output", msg);
+            let _ = send_action!(comp, output, msg);
         }
         // Content
         "set_text" => {
@@ -252,7 +252,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 builder.set_name(&comp.name);
                 builder.set_text(new_content);
             }
-            comp.send_action("output", msg);
+            send_action!(comp, output, msg);
         }
         "insert_text" => {
             msg_input.action = "forward_create".into();
@@ -260,7 +260,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 let mut builder = try!(msg_input.edit_schema::<js_create::Builder, js_create::Reader>());
                 builder.set_append(&comp.name);
             }
-            comp.send_action("output", msg_input);
+            send_action!(comp, output, msg_input);
         }
         "get_text" => {
             let reader = try!(msg_input.read_schema::<generic_text::Reader>());
@@ -272,14 +272,14 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 builder.set_text(resp);
             }
             msg.action = key.to_string();
-            let _ = comp.send_action("output", msg);
+            let _ = send_action!(comp, output, msg);
         }
         "input" => {
             {
                 let mut reader: generic_text::Reader = try!(msg_input.read_schema());
                 comp.portal.property.insert("value".into(), try!(reader.get_text()).into());
             }
-            let _ = comp.send_action("output", msg_input);
+            let _ = send_action!(comp, output, msg_input);
 
         }
         "delete" => {
@@ -289,9 +289,9 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 builder.set_remove(true);
             }
             msg_input.action = "forward".into();
-            let _ = comp.send_action("output", msg_input);
+            let _ = send_action!(comp, output, msg_input);
         }
-        _ => { let _ = comp.send_action("output", msg_input); }
+        _ => { let _ = send_action!(comp, output, msg_input); }
     }
 
     Ok(())

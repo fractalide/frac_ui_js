@@ -120,7 +120,7 @@ agent! {
                 msg.action = "create".into();
                 try!(self.output.scheduler.send(msg));
             }
-            _ => { try!(self.send_action("output", msg)); }
+            _ => { try!(send_action!(self, output, msg)); }
         };
         Ok(End)
     }
