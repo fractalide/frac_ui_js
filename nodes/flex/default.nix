@@ -2,6 +2,7 @@
 
 subgraph {
   src = ./.;
+  edges = with edges; [ ];
   flowscript = with nodes; with edges; ''
    input => input div(${tag}) output => output
    places => places orderer(${orderer}) output -> input div()
