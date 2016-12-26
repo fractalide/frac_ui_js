@@ -9,8 +9,8 @@ agent! {
     input(input: any),
     output(output: any, scheduler: fbp_action),
     outarr(output: any),
-    option(generic_text),
     portal(usize => 0),
+    option(prim_text),
     fn run(&mut self) -> Result<Signal> {
 
         let mut msg = try!(self.input.input.recv());
@@ -83,7 +83,7 @@ agent! {
                 self.portal += 1;
                 // Add link
                 let mut msg_opt = self.recv_option();
-                let mut reader: generic_text::Reader = try!(msg_opt.read_schema());
+                let mut reader: prim_text::Reader = try!(msg_opt.read_schema());
                 let name = format!("i{}", self.portal);
                 // Send the create comp Msg
                 let mut send_msg = Msg::new();

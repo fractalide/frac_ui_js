@@ -29,20 +29,20 @@ agent! {
             if let Ok(mut msg) = msg_place {
                 if msg.action == "create" {
                     msg.action = "insert_text".into();
-                    try!(insert(&mut msg));
+                    insert(&mut msg)?;
                     {
-                        let reader = try!(msg.read_schema::<js_create::Reader>());
-                        self.portal.places.insert(place.into(), try!(reader.get_name()).into());
+                        let reader = msg.read_schema::<js_create::Reader>()?;
+                        self.portal.places.insert(place.into(), reader.get_name()?.get_text()?.into());
                     }
                 } else if msg.action == "display" {
                     // Display
                     msg.action = "forward".into();
                     let mut builder = msg.build_schema::<js_create::Builder>();
-                    let name = try!(self.portal.places.get(&place).ok_or(result::Error::Misc("Don't get the name".into())));
-                    builder.set_name(&name);
-                    let mut init = builder.init_style(1);
-                    init.borrow().get(0).set_key("display");
-                    init.borrow().get(0).set_val("inline");
+                    let name = self.portal.places.get(&place).ok_or(result::Error::Misc("Don't get the name".into()))?;
+                    builder.borrow().get_name()?.set_text(&name);
+                    let mut init = builder.get_style()?.init_list(1);
+                    init.borrow().get(0).get_key()?.set_text("display");
+                    init.borrow().get(0).get_val()?.set_text("inline");
                     // Hidden if already a visible
                     match self.portal.actual {
                         Some(ref actual) => {
@@ -51,19 +51,19 @@ agent! {
                             {
                                 let mut builder = msg.build_schema::<js_create::Builder>();
                                 let name = try!(self.portal.places.get(actual).ok_or(result::Error::Misc("Don't get the name".into())));
-                                builder.set_name(&name);
-                                let mut init = builder.init_style(1);
-                                init.borrow().get(0).set_key("display");
-                                init.borrow().get(0).set_val("none");
+                                builder.borrow().get_name()?.set_text(&name);
+                                let mut init = builder.get_style()?.init_list(1);
+                                init.borrow().get(0).get_key()?.set_text("display");
+                                init.borrow().get(0).get_val()?.set_text("none");
                             }
-                            try!(self.output.output.send(msg));
+                            self.output.output.send(msg)?;
                         }
                         _ => {}
                     }
                     // Set the new
                     self.portal.actual = Some(place.into());
                 }
-                try!(self.output.output.send(msg));
+                self.output.output.send(msg)?;
             }
         }
 
@@ -74,25 +74,25 @@ agent! {
 fn insert(mut msg: &mut Msg) -> Result<()> {
     let mut vec: Vec<(String, String)> = vec![];
     {
-        let acc: js_create::Reader = try!(msg.read_schema());
-        let acc_places = try!(acc.get_style());
+        let acc: js_create::Reader = msg.read_schema()?;
+        let acc_places = acc.get_style()?.get_list()?;
         for i in 0..acc_places.len() {
             let p = acc_places.get(i);
-            vec.push((try!(p.get_key()).into(), try!(p.get_val()).into()));
+            vec.push((p.get_key()?.get_text()?.into(), p.get_val()?.get_text()?.into()));
         }
     }
     // Add it
     {
-        let mut builder = try!(msg.edit_schema::<js_create::Builder, js_create::Reader>());
-        let mut init = builder.init_style((vec.len() + 1) as u32);
+        let mut builder = msg.edit_schema::<js_create::Builder, js_create::Reader>()?;
+        let mut init = builder.get_style()?.init_list((vec.len() + 1) as u32);
         let mut i = 0;
         for p in vec {
-            init.borrow().get(i).set_key(&p.0);
-            init.borrow().get(i).set_val(&p.1);
+            init.borrow().get(i).get_key()?.set_text(&p.0);
+            init.borrow().get(i).get_val()?.set_text(&p.1);
             i += 1;
         }
-        init.borrow().get(i).set_key("display");
-        init.borrow().get(i).set_val("none");
+        init.borrow().get(i).get_key()?.set_text("display");
+        init.borrow().get(i).get_val()?.set_text("none");
     }
     Ok(())
 }

@@ -6,8 +6,8 @@ extern crate rustfbp;
 use std::thread;
 
 agent! {
-    input(input: generic_text),
-    output(output: generic_text),
+    input(input: prim_text),
+    output(output: prim_text),
     fn run(&mut self) -> Result<Signal> {
         let mut msg_new = try!(self.input.input.recv());
         let _ = try!(self.input.input.recv());

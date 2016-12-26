@@ -18,24 +18,24 @@ agent! {
                     let mut vec: Vec<(String, String)> = vec![];
                     {
                         let acc: js_create::Reader = try!(ip.read_schema());
-                        let acc_places = try!(acc.get_style());
+                        let acc_places = acc.get_style()?.get_list()?;
                         for i in 0..acc_places.len() {
                             let p = acc_places.get(i);
-                            vec.push((try!(p.get_key()).into(), try!(p.get_val()).into()));
+                            vec.push((p.get_key()?.get_text()?.into(), p.get_val()?.get_text()?.into()));
                         }
                     }
                     // Add it
                     {
                         let mut builder = try!(ip.edit_schema::<js_create::Builder, js_create::Reader>());
-                        let mut init = builder.init_style((vec.len() + 1) as u32);
+                        let mut init = builder.get_style()?.init_list((vec.len() + 1) as u32);
                         let mut i = 0;
                         for p in vec {
-                            init.borrow().get(i).set_key(&p.0);
-                            init.borrow().get(i).set_val(&p.1);
+                            init.borrow().get(i).get_key()?.set_text(&p.0);
+                            init.borrow().get(i).get_val()?.set_text(&p.1);
                             i += 1;
                         }
-                        init.borrow().get(i).set_key("order");
-                        init.borrow().get(i).set_val(place);
+                        init.borrow().get(i).get_key()?.set_text("order");
+                        init.borrow().get(i).get_val()?.set_text(place);
                     }
                 }
                 try!(self.output.output.send(ip));

@@ -2,33 +2,33 @@
 
 subgraph {
   src = ./.;
-  edges = with edges; [ generic_text ];
+  edges = with edges; [ prim_text ];
   flowscript = with nodes; with edges; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
-   ph(${ui_js_nodes.placeholder}) output -> input out_dispatch()
+   ph(${placeholder}) output -> input out_dispatch()
 
-   text(${ui_js_nodes.tag}) output -> places[1] ph()
-   input(${ui_js_nodes.tag}) output -> places[2] ph()
+   text(${tag}) output -> places[1] ph()
+   input(${tag}) output -> places[2] ph()
 
    text() output[dblclick] -> input disp_input(${msg_action}) output -> input input()
-   '${generic_text}:(text="display")' -> option disp_input()
+   '${prim_text}:(text="display")' -> option disp_input()
 
-   input() output[keyup] -> input key_filter(${ui_js_nodes.edit_keyfilter})
+   input() output[keyup] -> input key_filter(${edit_keyfilter})
    key_filter() validate -> input input()
    key_filter() escape -> input out_dispatch()
    key_filter() display -> input text()
 
-   input() output[focusout] -> input validate(${ui_js_nodes.edit_validate})
+   input() output[focusout] -> input validate(${edit_validate})
    validate() validate -> input input()
    validate() display -> input text()
 
-   in_dispatch() output[model] -> input viewer(${ui_js_nodes.edit_viewer})
+   in_dispatch() output[model] -> input viewer(${edit_viewer})
    in_dispatch() output[escape] -> input viewer()
    viewer() text -> input text()
    viewer() input -> input input()
 
-   in_dispatch() output[create] -> input create(${ui_js_nodes.edit_create})
+   in_dispatch() output[create] -> input create(${edit_create})
    create() ph -> input ph()
    create() text -> input text()
    create() input -> input input()

@@ -2,13 +2,13 @@
 
 subgraph {
   src = ./.;
-  edges = with edges; [ generic_text ];
+  edges = with edges; [ prim_text ];
   flowscript = with nodes; with edges; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
-   model(${app_model}) output -> input view(${ui_js_nodes.edit_view}) output -> input out_dispatch()
+   model(${app_model}) output -> input view(${edit_view}) output -> input out_dispatch()
 
-   '${generic_text}:(text="")' -> acc model()
+   '${prim_text}:(text="")' -> acc model()
 
    in_dispatch() output[create] -> input create_clone(${msg_clone})
    create_clone() clone[1] -> input view()
@@ -20,7 +20,7 @@ subgraph {
    view() output[get_model] -> input model()
    view() output[content_edited] -> input model()
 
-   model() compute[content_edited] -> input ce(${ui_js_nodes.edit_contentedited}) output -> result model()
+   model() compute[content_edited] -> input ce(${edit_contentedited}) output -> result model()
    model() compute[set_property] -> input ce()
    '';
 }

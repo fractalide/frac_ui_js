@@ -18,7 +18,7 @@ impl Handler for Server {
         let mut new_msg = Msg::new();
         new_msg.action = "intern_msg".into();
         {
-            let mut builder = new_msg.build_schema::<generic_text::Builder>();
+            let mut builder = new_msg.build_schema::<prim_text::Builder>();
             let msg = try!(msg.as_text());
             builder.set_text(msg);
         }
@@ -108,7 +108,7 @@ agent! {
                     out.send(d3);
                 }
                 "intern_msg" => {
-                    let mut reader: generic_text::Reader = try!(msg.read_schema());
+                    let mut reader: prim_text::Reader = try!(msg.read_schema());
                     let text = try!(reader.get_text());
                     let pos = try!(text.find("#").ok_or(result::Error::Misc("bad response from page".into())));
                     let (action, id) = text.split_at(pos);
@@ -120,7 +120,7 @@ agent! {
                         let (id, text) = id.split_at(pos);
                         let (_, text) = text.split_at(1);
                         {
-                            let mut builder: generic_text::Builder = msg.build_schema();
+                            let mut builder: prim_text::Builder = msg.build_schema();
                             builder.set_text(text);
                         }
                         id
@@ -129,7 +129,7 @@ agent! {
                         let (id, text) = id.split_at(pos);
                         let (_, text) = text.split_at(1);
                         {
-                            let mut builder: generic_text::Builder = msg.build_schema();
+                            let mut builder: prim_text::Builder = msg.build_schema();
                             builder.set_text(text);
                         }
                         id
