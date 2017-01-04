@@ -17,7 +17,7 @@ agent! {
         }
 
         {
-            let mut builder = try!(msg_actual.edit_schema::<app_counter::Builder, app_counter::Reader>());
+            let mut builder = try!(msg_actual.edit_schema::<ui_app_counter::Builder, ui_app_counter::Reader>());
             let actual = builder.borrow().as_reader().get_value();
             let delta = builder.borrow().as_reader().get_delta();
             builder.set_value(actual-delta);

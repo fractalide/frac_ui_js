@@ -7,7 +7,7 @@ use std::thread;
 
 agent! {
     input(input: any),
-    output(output: any, scheduler: fbp_action),
+    output(output: any, scheduler: core_action),
     outarr(output: any),
     portal(usize => 0),
     option(prim_text),
@@ -19,7 +19,7 @@ agent! {
                 // Send the create comp Msg
                 let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_msg.build_schema();
+                    let mut builder: core_action::Builder = send_msg.build_schema();
                     let mut add = builder.init_add();
                     add.set_name("flex");
                     add.set_comp("ui_js_flex");
@@ -28,7 +28,7 @@ agent! {
                 // Connect to outside
                 let mut connect_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = connect_msg.build_schema();
+                    let mut builder: core_action::Builder = connect_msg.build_schema();
                     let mut connect = builder.init_connect_sender();
                     connect.set_name("flex");
                     connect.set_port("output");
@@ -39,7 +39,7 @@ agent! {
                 // Send the acc Msg
                 let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_msg.build_schema();
+                    let mut builder: core_action::Builder = send_msg.build_schema();
                     let mut connect = builder.init_send();
                     connect.set_comp("flex");
                     connect.set_port("input");
@@ -55,7 +55,7 @@ agent! {
                     // Send the delete Msg
                     let mut send_msg = Msg::new();
                     {
-                        let mut builder: fbp_action::Builder = send_msg.build_schema();
+                        let mut builder: core_action::Builder = send_msg.build_schema();
                         let mut connect = builder.init_send();
                         connect.set_comp(&name);
                         connect.set_port("input");
@@ -71,7 +71,7 @@ agent! {
                     // Send the remove Msg
                     let mut remove_msg = Msg::new();
                     {
-                        let mut builder: fbp_action::Builder = remove_msg.build_schema();
+                        let mut builder: core_action::Builder = remove_msg.build_schema();
                         let mut rem = builder.set_remove(&name);
                     }
                     try!(self.output.scheduler.send(remove_msg));
@@ -88,7 +88,7 @@ agent! {
                 // Send the create comp Msg
                 let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_msg.build_schema();
+                    let mut builder: core_action::Builder = send_msg.build_schema();
                     let mut add = builder.init_add();
                     add.set_name(&name);
                     add.set_comp(try!(reader.get_text()));
@@ -98,7 +98,7 @@ agent! {
                 // Send the connect Msg
                 let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_msg.build_schema();
+                    let mut builder: core_action::Builder = send_msg.build_schema();
                     let mut connect = builder.init_connect();
                     connect.set_o_name(&name);
                     connect.set_o_port("output");
@@ -111,7 +111,7 @@ agent! {
                 // Send the create Msg
                 let mut send_msg = Msg::new();
                 {
-                    let mut builder: fbp_action::Builder = send_msg.build_schema();
+                    let mut builder: core_action::Builder = send_msg.build_schema();
                     let mut send = builder.init_send();
                     send.set_comp(&name);
                     send.set_port("input");

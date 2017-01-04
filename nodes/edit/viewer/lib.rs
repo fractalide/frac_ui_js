@@ -7,7 +7,7 @@ use std::thread;
 
 agent! {
     input(input: prim_text),
-    output(text: prim_text, input: ntuple_tuple_tt),
+    output(text: prim_text, input: ntup_tuple_tt),
     fn run(&mut self) -> Result<Signal> {
         let mut msg_input = try!(self.input.input.recv());
 
@@ -23,7 +23,7 @@ agent! {
         }
         let mut msg = Msg::new();
         {
-            let mut builder = msg.build_schema::<ntuple_tuple_tt::Builder>();
+            let mut builder = msg.build_schema::<ntup_tuple_tt::Builder>();
             builder.borrow().get_first()?.set_text("value");
             builder.borrow().get_second()?.set_text(try!(reader.get_text()));
 

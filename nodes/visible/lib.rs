@@ -31,15 +31,15 @@ agent! {
                     msg.action = "insert_text".into();
                     insert(&mut msg)?;
                     {
-                        let reader = msg.read_schema::<js_create::Reader>()?;
-                        self.portal.places.insert(place.into(), reader.get_name()?.get_text()?.into());
+                        let reader = msg.read_schema::<ui_js_create::Reader>()?;
+                        self.portal.places.insert(place.into(), reader.get_name()?.into());
                     }
                 } else if msg.action == "display" {
                     // Display
                     msg.action = "forward".into();
-                    let mut builder = msg.build_schema::<js_create::Builder>();
+                    let mut builder = msg.build_schema::<ui_js_create::Builder>();
                     let name = self.portal.places.get(&place).ok_or(result::Error::Misc("Don't get the name".into()))?;
-                    builder.borrow().get_name()?.set_text(&name);
+                    builder.borrow().set_name(&name);
                     let mut init = builder.get_style()?.init_list(1);
                     init.borrow().get(0).get_key()?.set_text("display");
                     init.borrow().get(0).get_val()?.set_text("inline");
@@ -49,9 +49,9 @@ agent! {
                             let mut msg = Msg::new();
                             msg.action = "forward".into();
                             {
-                                let mut builder = msg.build_schema::<js_create::Builder>();
+                                let mut builder = msg.build_schema::<ui_js_create::Builder>();
                                 let name = try!(self.portal.places.get(actual).ok_or(result::Error::Misc("Don't get the name".into())));
-                                builder.borrow().get_name()?.set_text(&name);
+                                builder.borrow().set_name(&name);
                                 let mut init = builder.get_style()?.init_list(1);
                                 init.borrow().get(0).get_key()?.set_text("display");
                                 init.borrow().get(0).get_val()?.set_text("none");
@@ -74,7 +74,7 @@ agent! {
 fn insert(mut msg: &mut Msg) -> Result<()> {
     let mut vec: Vec<(String, String)> = vec![];
     {
-        let acc: js_create::Reader = msg.read_schema()?;
+        let acc: ui_js_create::Reader = msg.read_schema()?;
         let acc_places = acc.get_style()?.get_list()?;
         for i in 0..acc_places.len() {
             let p = acc_places.get(i);
@@ -83,7 +83,7 @@ fn insert(mut msg: &mut Msg) -> Result<()> {
     }
     // Add it
     {
-        let mut builder = msg.edit_schema::<js_create::Builder, js_create::Reader>()?;
+        let mut builder = msg.edit_schema::<ui_js_create::Builder, ui_js_create::Reader>()?;
         let mut init = builder.get_style()?.init_list((vec.len() + 1) as u32);
         let mut i = 0;
         for p in vec {

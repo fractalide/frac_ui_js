@@ -2,7 +2,7 @@
 
 agent {
   src = ./.;
-  edges = with edges; [ app_counter ];
+  edges = with edges; [ ui_app_counter ];
   crates = with crates; [ rustfbp capnp ];
   osdeps = with pkgs; [];
 }

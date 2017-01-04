@@ -2,7 +2,7 @@
 
 agent {
   src = ./.;
-  edges = with edges; [ js_create prim_text fbp_action ];
+  edges = with edges; [ core_action ];
   crates = with crates; [ rustfbp capnp ];
   osdeps = with pkgs; [];
   configurePhase = with nodes; ''

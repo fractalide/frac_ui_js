@@ -8,7 +8,7 @@ use std::thread;
 // TODO : add ctrl-maj-meta information
 agent! {
     input(input: prim_text),
-    output(validate: ntuple_tuple_tt, escape: prim_text, display: any),
+    output(validate: ntup_tuple_tt, escape: prim_text, display: any),
     fn run(&mut self) -> Result<Signal> {
         let mut msg_input = try!(self.input.input.recv());
 
@@ -30,7 +30,7 @@ agent! {
         } else if res == "13" { // Enter
             msg_input.action="get_property".into();
             {
-                let mut builder: ntuple_tuple_tt::Builder = msg_input.build_schema();
+                let mut builder: ntup_tuple_tt::Builder = msg_input.build_schema();
                 builder.borrow().get_first()?.set_text("content_edited");
                 builder.borrow().get_second()?.set_text("value");
             }

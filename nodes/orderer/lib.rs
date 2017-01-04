@@ -17,7 +17,7 @@ agent! {
                     // Add the css
                     let mut vec: Vec<(String, String)> = vec![];
                     {
-                        let acc: js_create::Reader = try!(ip.read_schema());
+                        let acc: ui_js_create::Reader = try!(ip.read_schema());
                         let acc_places = acc.get_style()?.get_list()?;
                         for i in 0..acc_places.len() {
                             let p = acc_places.get(i);
@@ -26,7 +26,7 @@ agent! {
                     }
                     // Add it
                     {
-                        let mut builder = try!(ip.edit_schema::<js_create::Builder, js_create::Reader>());
+                        let mut builder = try!(ip.edit_schema::<ui_js_create::Builder, ui_js_create::Reader>());
                         let mut init = builder.get_style()?.init_list((vec.len() + 1) as u32);
                         let mut i = 0;
                         for p in vec {

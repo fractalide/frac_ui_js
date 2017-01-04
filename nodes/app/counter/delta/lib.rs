@@ -18,7 +18,7 @@ agent! {
 
         {
             let mut reader: prim_text::Reader = try!(msg_delta.read_schema());
-            let mut builder = try!(msg_actual.edit_schema::<app_counter::Builder, app_counter::Reader>());
+            let mut builder = try!(msg_actual.edit_schema::<ui_app_counter::Builder, ui_app_counter::Reader>());
             let mut text = try!(reader.get_text());
             if text == "" { text = "0"; }
             if let Ok(i) = text.parse::<i64>() {
