@@ -2,9 +2,7 @@
 
 subgraph {
   src = ./.;
-  edges = with edges; [ ui_js_create prim_text ui_app_counter ];
   flowscript = with nodes; with edges; ''
-
    td(${flex}) output -> input page(${page})
    '${ui_js_create}:(type="div", style=[(key="display", val="flex"), (key="flex-direction", val="column")])~create' -> input td()
 
