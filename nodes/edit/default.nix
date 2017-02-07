@@ -1,13 +1,16 @@
-{ subgraph, nodes, edges }:
+{ subgraph, imsgs, nodes, edges }:
 
-subgraph {
+subgraph rec {
   src = ./.;
-  flowscript = with nodes; with edges; ''
+  imsg = imsgs {
+    edges = with edges; [ PrimText ];
+  };
+  flowscript = with nodes; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
    model(${app_model}) output -> input view(${edit_view}) output -> input out_dispatch()
 
-   '${prim_text}:(text="")' -> acc model()
+   '${imsg}.PrimText:(text="")' -> acc model()
 
    in_dispatch() output[create] -> input create_clone(${msg_clone})
    create_clone() clone[1] -> input view()

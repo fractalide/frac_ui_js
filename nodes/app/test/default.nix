@@ -1,10 +1,13 @@
-{ subgraph, nodes, edges }:
+{ subgraph, imsgs, nodes, edges }:
 
-subgraph {
+subgraph rec {
   src = ./.;
-  flowscript = with nodes; with edges; ''
-  '${js_create}:(type="div", style=[(key="display", val="flex"), (key="flex-direction", val="column")])~create' -> input td(${flex}) output -> input page(${page})
-  '${prim_text}:(text="initial")~create' -> input edit(${edit}) output -> places[1] td()
-  '${js_create}:(type="span", text="hello")~create' -> input t(${tag}) output -> places[2] td()
+  imsg = imsgs {
+    edges = with edges; [ UiJsCreate PrimText];
+  };
+  flowscript = with nodes; ''
+  '${imsg}.UiJsCreate:(type="div", style=[(key="display", val="flex"), (key="flex-direction", val="column")])~create' -> input td(${flex}) output -> input page(${page})
+  '${imsg}.PrimText:(text="initial")~create' -> input edit(${edit}) output -> places[1] td()
+  '${imsg}.UiJsCreate:(type="span", text="hello")~create' -> input t(${tag}) output -> places[2] td()
   '';
 }

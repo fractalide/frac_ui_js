@@ -1,7 +1,10 @@
-{ subgraph, nodes, edges }:
+{ subgraph, imsgs, nodes, edges }:
 
-subgraph {
+subgraph rec {
   src = ./.;
+  imsg = imsgs {
+    edges = with edges; [ PrimText ];
+  };
   flowscript = with nodes; with edges; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
@@ -11,7 +14,7 @@ subgraph {
    input(${tag}) output -> places[2] ph()
 
    text() output[dblclick] -> input disp_input(${msg_action}) output -> input input()
-   '${prim_text}:(text="display")' -> option disp_input()
+   '${imsg}.PrimText:(text="display")' -> option disp_input()
 
    input() output[keyup] -> input key_filter(${edit_keyfilter})
    key_filter() validate -> input input()

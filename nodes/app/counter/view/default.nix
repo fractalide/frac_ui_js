@@ -1,8 +1,11 @@
-{ subgraph, nodes, edges }:
+{ subgraph, imsgs, nodes, edges }:
 
-subgraph {
+subgraph rec {
   src = ./.;
-  flowscript = with nodes; with edges; ''
+  imsg = imsgs {
+    edges = with edges; [ PrimText ];
+  };
+  flowscript = with nodes; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
    td(${flex}) output -> input out_dispatch()
@@ -17,14 +20,14 @@ subgraph {
 
    button() output[click] -> input minus(${msg_action}) output -> input out_dispatch()
    button2() output[click] -> input add(${msg_action}) output -> input out_dispatch()
-   '${prim_text}:(text="minus")' -> option minus()
-   '${prim_text}:(text="add")' -> option add()
+   '${imsg}.PrimText:(text="minus")' -> option minus()
+   '${imsg}.PrimText:(text="add")' -> option add()
 
 
    input(${tag}) output -> places[1] td()
 
    input() output[input] -> input delta(${msg_action}) output -> input out_dispatch()
-   '${prim_text}:(text="delta")' -> option delta()
+   '${imsg}.PrimText:(text="delta")' -> option delta()
 
    viewer() delta -> input input()
 

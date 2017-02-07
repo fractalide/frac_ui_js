@@ -1,14 +1,17 @@
-{ subgraph, nodes, edges }:
+{ subgraph, imsgs, nodes, edges }:
 
-subgraph {
+subgraph rec {
   src = ./.;
-  flowscript = with nodes; with edges; ''
+  imsg = imsgs {
+    edges = with edges; [ PrimI64 ];
+  };
+  flowscript = with nodes; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
    model(${app_model}) output -> input view(${app_counter_view}) output -> input out_dispatch()
 
 
-   '${prim_i64}:(i64=0)' -> acc model()
+   '${imsg}.PrimI64:(i64=0)' -> acc model()
    out_dispatch() output[add] -> input model()
    out_dispatch() output[minus] -> input model()
    out_dispatch() output[delta] -> input model()

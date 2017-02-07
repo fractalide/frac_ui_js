@@ -1,9 +1,12 @@
-{ subgraph, nodes, edges }:
+{ subgraph, imsgs, nodes, edges }:
 
-subgraph {
+subgraph rec {
   src = ./.;
+  imsg = imsgs {
+    edges = with edges; [ UiAppCounter ];
+  };
   flowscript = with nodes; with edges; ''
   counter(${app_counter_card}) output -> input page(${page})
-  '${app_counter}:(value=42)~create' -> input counter()
+  '${imsg}.UiAppCounter:(value=42)~create' -> input counter()
   '';
 }

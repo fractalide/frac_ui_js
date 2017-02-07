@@ -2,7 +2,7 @@
 
 agent {
   src = ./.;
-  edges = with edges; [ core_action ];
+  edges = with edges; [ CoreAction ];
   crates = with crates; [ rustfbp capnp ];
   osdeps = with pkgs; [];
   configurePhase = with nodes; ''

@@ -2,7 +2,7 @@
 
 agent {
   src = ./.;
-  edges = with edges; [ prim_text ui_js_create ];
+  edges = with edges; [ PrimText UiJsCreate ];
   crates = with crates; [ rustfbp capnp ];
   osdeps = with pkgs; [];
 }

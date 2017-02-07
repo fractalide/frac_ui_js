@@ -2,7 +2,7 @@
 
 agent {
   src = ./.;
-  edges = with edges; [ ui_js_create ntup_tuple_tt prim_text prim_bool ];
+  edges = with edges; [ UiJsCreate NtupTupleTt PrimText PrimBool ];
   crates = with crates; [ rustfbp capnp ];
   osdeps = with pkgs; [];
 }
