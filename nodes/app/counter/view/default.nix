@@ -1,10 +1,20 @@
-{ subgraph, imsgs, nodes, edges }:
-
-subgraph rec {
-  src = ./.;
-  imsg = imsgs {
-    edges = with edges; [ PrimText ];
+{ subgraph, imsg, nodes, edges }:
+let
+  Minus = imsg {
+    class = edges.PrimText;
+    text = ''(text="minus")'';
   };
+  Add = imsg {
+    class = edges.PrimText;
+    text = ''(text="add")'';
+  };
+  Delta = imsg {
+    class = edges.PrimText;
+    text = ''(text="delta")'';
+  };
+in
+subgraph {
+  src = ./.;
   flowscript = with nodes; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
@@ -20,14 +30,14 @@ subgraph rec {
 
    button() output[click] -> input minus(${msg_action}) output -> input out_dispatch()
    button2() output[click] -> input add(${msg_action}) output -> input out_dispatch()
-   '${imsg}.PrimText:(text="minus")' -> option minus()
-   '${imsg}.PrimText:(text="add")' -> option add()
+   '${Minus}' -> option minus()
+   '${Add}' -> option add()
 
 
    input(${tag}) output -> places[1] td()
 
    input() output[input] -> input delta(${msg_action}) output -> input out_dispatch()
-   '${imsg}.PrimText:(text="delta")' -> option delta()
+   '${Delta}' -> option delta()
 
    viewer() delta -> input input()
 

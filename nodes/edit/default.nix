@@ -1,16 +1,18 @@
-{ subgraph, imsgs, nodes, edges }:
-
-subgraph rec {
-  src = ./.;
-  imsg = imsgs {
-    edges = with edges; [ PrimText ];
+{ subgraph, imsg, nodes, edges }:
+let
+  PrimText = imsg {
+    class = edges.PrimText;
+    text = ''(text="")'';
   };
+in
+subgraph {
+  src = ./.;
   flowscript = with nodes; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
    model(${app_model}) output -> input view(${edit_view}) output -> input out_dispatch()
 
-   '${imsg}.PrimText:(text="")' -> acc model()
+   '${PrimText}' -> acc model()
 
    in_dispatch() output[create] -> input create_clone(${msg_clone})
    create_clone() clone[1] -> input view()

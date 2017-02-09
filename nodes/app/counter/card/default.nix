@@ -1,17 +1,18 @@
-{ subgraph, imsgs, nodes, edges }:
-
-subgraph rec {
-  src = ./.;
-  imsg = imsgs {
-    edges = with edges; [ PrimI64 ];
+{ subgraph, imsg, nodes, edges }:
+let
+  PrimI64 = imsg {
+    class = edges.PrimI64;
+    text = ''(i64=0)'';
   };
+in
+subgraph {
+  src = ./.;
   flowscript = with nodes; ''
    input => input in_dispatch(${msg_dispatcher}) output -> input out_dispatch(${msg_dispatcher}) output => output
 
    model(${app_model}) output -> input view(${app_counter_view}) output -> input out_dispatch()
 
-
-   '${imsg}.PrimI64:(i64=0)' -> acc model()
+   '${PrimI64}' -> acc model()
    out_dispatch() output[add] -> input model()
    out_dispatch() output[minus] -> input model()
    out_dispatch() output[delta] -> input model()
