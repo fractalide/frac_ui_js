@@ -5,7 +5,7 @@ extern crate rustfbp;
 
 use std::thread;
 
-pub struct Portal {
+pub struct State {
     ty: Option<String>,
     text: Option<String>,
     style: HashMap<String, String>,
@@ -15,9 +15,9 @@ pub struct Portal {
     buffer: Vec<Msg>,
 }
 
-impl Portal {
+impl State {
     fn new() -> Self {
-        Portal {
+        State {
             ty: None,
             text: None,
             style: HashMap::new(),
@@ -74,11 +74,11 @@ agent! {
     input(input: any),
     output(output: any),
     outarr(output: any),
-    portal(Portal => Portal::new()),
+    state(State => State::new()),
     fn run(&mut self) -> Result<Signal> {
         let mut msg_input = try!(self.input.input.recv());
-        if &msg_input.action != "create" && self.portal.ty.is_none() {
-            self.portal.buffer.push(msg_input);
+        if &msg_input.action != "create" && self.state.ty.is_none() {
+            self.state.buffer.push(msg_input);
         } else {
             try!(handle_msg(self, msg_input));
         }
@@ -89,8 +89,8 @@ agent! {
 pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
     match &msg_input.action[..] {
         "create" => {
-            // Put in the portal
-            try!(comp.portal.build(&mut msg_input));
+            // Put in the state
+            try!(comp.state.build(&mut msg_input));
             // create the create Msg
             {
                 let mut builder = try!(msg_input.edit_schema::<ui_js_create::Builder, ui_js_create::Reader>());
@@ -101,18 +101,18 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
                 builder.borrow().set_sender(Box::into_raw(sender) as u64);
             }
             let _ = send_action!(comp, output, msg_input);
-            let buffer = comp.portal.buffer.drain(..).collect::<Vec<_>>();
+            let buffer = comp.state.buffer.drain(..).collect::<Vec<_>>();
             for msg in buffer {
                 try!(handle_msg(&mut comp, msg));
             }
         }
         // CSS
         "set_css" => {
-            // Change in portal
+            // Change in state
             let reader = msg_input.read_schema::<ntup_tuple_tt::Reader>()?;
             let key = reader.get_first()?.get_text()?;
             let value = reader.get_second()?.get_text()?;
-            comp.portal.style.insert(key.into(), value.into());
+            comp.state.style.insert(key.into(), value.into());
             // Send outside
             let mut msg = Msg::new();
             msg.action = "forward".into();
@@ -129,7 +129,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
             let reader = msg_input.read_schema::<ntup_tuple_tt::Reader>()?;
             let key = reader.get_first()?.get_text()?;
             let value = reader.get_second()?.get_text()?;
-            let resp = comp.portal.style.get(value).map(|resp| resp.as_str())
+            let resp = comp.state.style.get(value).map(|resp| resp.as_str())
                 .unwrap_or("");
             let mut msg = Msg::new();
             {
@@ -141,11 +141,11 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
         }
         // Attributes
         "set_attr" => {
-            // Change in portal
+            // Change in state
             let reader = msg_input.read_schema::<ntup_tuple_tt::Reader>()?;
             let key = reader.get_first()?.get_text()?;
             let value = reader.get_second()?.get_text()?;
-            comp.portal.attributes.insert(key.into(), value.into());
+            comp.state.attributes.insert(key.into(), value.into());
             // Send outside
             let mut msg = Msg::new();
             msg.action = "forward".into();
@@ -162,7 +162,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
             let reader = msg_input.read_schema::<ntup_tuple_tt::Reader>()?;
             let key = reader.get_first()?.get_text()?;
             let value = reader.get_second()?.get_text()?;
-            let resp = comp.portal.attributes.get(value).map(|resp| resp.as_str())
+            let resp = comp.state.attributes.get(value).map(|resp| resp.as_str())
                 .unwrap_or("");
             let mut msg = Msg::new();
             {
@@ -174,12 +174,12 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
         }
         // class
         "set_class" => {
-            // Change in portal
+            // Change in state
             let reader = msg_input.read_schema::<ntup_tuple_tt::Reader>()?;
             let key = reader.get_first()?.get_text()?;
             let value = reader.get_second()?.get_text()?;
             let value = if value == "true" { true } else { false };
-            comp.portal.class.insert(key.into(), value);
+            comp.state.class.insert(key.into(), value);
             // Send outside
             let mut msg = Msg::new();
             msg.action = "forward".into();
@@ -196,7 +196,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
             let reader = msg_input.read_schema::<ntup_tuple_tt::Reader>()?;
             let key = reader.get_first()?.get_text()?;
             let value = reader.get_second()?.get_text()?;
-            let resp = comp.portal.class.get(value).map(|b| b.to_owned()).unwrap_or(false);
+            let resp = comp.state.class.get(value).map(|b| b.to_owned()).unwrap_or(false);
             let mut msg = Msg::new();
             {
                 let mut builder = msg.build_schema::<prim_bool::Builder>();
@@ -207,11 +207,11 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
         }
         // property
         "set_property" => {
-            // Change in portal
+            // Change in state
             let reader = msg_input.read_schema::<ntup_tuple_tt::Reader>()?;
             let key = reader.get_first()?.get_text()?;
             let value = reader.get_second()?.get_text()?;
-            comp.portal.property.insert(key.into(), value.into());
+            comp.state.property.insert(key.into(), value.into());
             // Send outside
             let mut msg = Msg::new();
             msg.action = "forward".into();
@@ -228,7 +228,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
             let reader = try!(msg_input.read_schema::<ntup_tuple_tt::Reader>());
             let key = reader.get_first()?.get_text()?;
             let value = reader.get_second()?.get_text()?;
-            let resp = comp.portal.property.get(value).map(|resp| resp.as_str())
+            let resp = comp.state.property.get(value).map(|resp| resp.as_str())
                 .unwrap_or("");
             let mut msg = Msg::new();
             {
@@ -242,8 +242,8 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
         "set_text" => {
             let reader = msg_input.read_schema::<prim_text::Reader>()?;
             let new_content = reader.get_text()?;
-            // Change in portal
-            comp.portal.text = Some(new_content.to_string());
+            // Change in state
+            comp.state.text = Some(new_content.to_string());
             // Send new content
             let mut msg = Msg::new();
             msg.action = "forward".to_string();
@@ -265,7 +265,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
         "get_text" => {
             let reader = try!(msg_input.read_schema::<prim_text::Reader>());
             let key = try!(reader.get_text());
-            let resp = comp.portal.text.as_ref().map(|resp| resp.as_str()).unwrap_or("");
+            let resp = comp.state.text.as_ref().map(|resp| resp.as_str()).unwrap_or("");
             let mut msg = Msg::new();
             {
                 let mut builder = msg.build_schema::<prim_text::Builder>();
@@ -277,7 +277,7 @@ pub fn handle_msg(mut comp: &mut ThisAgent, mut msg_input: Msg) -> Result<()> {
         "input" => {
             {
                 let mut reader: prim_text::Reader = try!(msg_input.read_schema());
-                comp.portal.property.insert("value".into(), try!(reader.get_text()).into());
+                comp.state.property.insert("value".into(), try!(reader.get_text()).into());
             }
             let _ = send_action!(comp, output, msg_input);
 

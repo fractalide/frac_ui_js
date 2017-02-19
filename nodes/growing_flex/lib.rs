@@ -9,7 +9,7 @@ agent! {
     input(input: any),
     output(output: any, scheduler: core_action),
     outarr(output: any),
-    portal(usize => 0),
+    state(usize => 0),
     option(prim_text),
     fn run(&mut self) -> Result<Signal> {
 
@@ -49,8 +49,8 @@ agent! {
 
             }
             "remove" => {
-                if self.portal > 0 {
-                    let name = format!("i{}", self.portal);
+                if self.state > 0 {
+                    let name = format!("i{}", self.state);
 
                     // Send the delete Msg
                     let mut send_msg = Msg::new();
@@ -76,15 +76,15 @@ agent! {
                     }
                     try!(self.output.scheduler.send(remove_msg));
 
-                    self.portal -= 1;
+                    self.state -= 1;
                 }
             },
             "add" => {
-                self.portal += 1;
+                self.state += 1;
                 // Add link
                 let mut msg_opt = self.recv_option();
                 let mut reader: prim_text::Reader = try!(msg_opt.read_schema());
-                let name = format!("i{}", self.portal);
+                let name = format!("i{}", self.state);
                 // Send the create comp Msg
                 let mut send_msg = Msg::new();
                 {

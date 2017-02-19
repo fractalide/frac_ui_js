@@ -5,14 +5,14 @@ extern crate rustfbp;
 
 use std::thread;
 
-pub struct Portal {
+pub struct State {
     places: HashMap<String, String>,
     actual: Option<String>,
 }
 
-impl Portal {
+impl State {
     fn new() -> Self {
-        Portal {
+        State {
             places: HashMap::new(),
             actual: None,
         }
@@ -22,7 +22,7 @@ impl Portal {
 agent! {
     inarr(places: any),
     output(output: any),
-    portal(Portal => Portal::new()),
+    state(State => State::new()),
     fn run(&mut self) -> Result<Signal> {
         for (place, recv) in self.inarr.places.iter() {
             let mut msg_place = recv.try_recv();
@@ -32,25 +32,25 @@ agent! {
                     insert(&mut msg)?;
                     {
                         let reader = msg.read_schema::<ui_js_create::Reader>()?;
-                        self.portal.places.insert(place.into(), reader.get_name()?.into());
+                        self.state.places.insert(place.into(), reader.get_name()?.into());
                     }
                 } else if msg.action == "display" {
                     // Display
                     msg.action = "forward".into();
                     let mut builder = msg.build_schema::<ui_js_create::Builder>();
-                    let name = self.portal.places.get(&place).ok_or(result::Error::Misc("Don't get the name".into()))?;
+                    let name = self.state.places.get(&place).ok_or(result::Error::Misc("Don't get the name".into()))?;
                     builder.borrow().set_name(&name);
                     let mut init = builder.get_style()?.init_list(1);
                     init.borrow().get(0).get_key()?.set_text("display");
                     init.borrow().get(0).get_val()?.set_text("inline");
                     // Hidden if already a visible
-                    match self.portal.actual {
+                    match self.state.actual {
                         Some(ref actual) => {
                             let mut msg = Msg::new();
                             msg.action = "forward".into();
                             {
                                 let mut builder = msg.build_schema::<ui_js_create::Builder>();
-                                let name = try!(self.portal.places.get(actual).ok_or(result::Error::Misc("Don't get the name".into())));
+                                let name = try!(self.state.places.get(actual).ok_or(result::Error::Misc("Don't get the name".into())));
                                 builder.borrow().set_name(&name);
                                 let mut init = builder.get_style()?.init_list(1);
                                 init.borrow().get(0).get_key()?.set_text("display");
@@ -61,7 +61,7 @@ agent! {
                         _ => {}
                     }
                     // Set the new
-                    self.portal.actual = Some(place.into());
+                    self.state.actual = Some(place.into());
                 }
                 self.output.output.send(msg)?;
             }
