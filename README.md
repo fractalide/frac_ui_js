@@ -1,19 +1,30 @@
-# fractal_ui_js
-## Fractalide; User Interface; Javascript
+# UI_JS
 
-![Image Alt](http://www.pravinkamble.com/wp-content/uploads/2016/02/userint.jpg)
----
-## Fractalide Library
-Please refer to [Fractalide](https://github.com/fractalide/fractalide) for more information.
+## Project Description:
 
-### Project Description:
+Server side rendering of HTML pages that are constructed using dataflow graphs.
 
+## Problem:
 
-### Problem:
+No way to make a unified dataflow Ui library.
 
-### Solution:
+## Solution:
 
+This is a highly experimental library to build out websites.
 
-### Stability:
+## Stability Status:
 
-Experimental
+- [x] Raw
+- [ ] Draft
+- [ ] Stable
+- [ ] Deprecated
+- [ ] Legacy
+
+## Build Instructions
+Ensure you've installed [nix](https://nixos.org/nix).
+```
+$ export NIX_PATH+=:fractalide=https://github.com/fractalide/fractalide/archive/v20170218.tar.gz
+$ git clone git://github.com/fractalide/fractal_ui_js.git
+$ cd fractal_ui_js
+$ nix-build --argstr rs test
+```
